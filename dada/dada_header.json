@@ -1,0 +1,15 @@
+{
+    "TSAMP":        "double",
+    "MJD_START":    "double",
+    "BW":           "double",
+    "UTC_START":    "string",
+    "NCHAN":        "int",
+    "NPKT":         "int",
+    "PKT_NSAMP":    "int",
+    "NCHAN_FINE":   "int",
+    "NAVERAGE":     "int",
+    "PKT_TSAMP":    "double",
+    "NPOL":         "int",
+    "NANT":         "int",
+    "NBIT":         "int"
+}

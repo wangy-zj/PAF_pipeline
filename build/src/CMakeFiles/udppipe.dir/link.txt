@@ -1,0 +1,2 @@
+/usr/bin/ar qc libudppipe.a CMakeFiles/udppipe.dir/dada_header.c.o CMakeFiles/udppipe.dir/dada_util.c.o CMakeFiles/udppipe.dir/hdf5_util.c.o CMakeFiles/udppipe.dir/krnl.cu.o CMakeFiles/udppipe.dir/test.cpp.o CMakeFiles/udppipe.dir/udp.cpp.o
+/usr/bin/ranlib libudppipe.a

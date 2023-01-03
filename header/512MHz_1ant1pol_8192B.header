@@ -1,0 +1,51 @@
+HDR_VERSION         1.0
+HDR_SIZE            4096
+BACKEND_PHASE       -1
+BW                  512        # MHz
+BYTES_PER_SECOND    1024000000 # For 1 seconds
+DSB                 1
+ENCODING            TWOSCOMPLEMENT
+ENDIAN              LITTLE
+END_CHANNEL         0
+FREQ                1400
+NANT                1
+NBIT                8
+NCHAN               1
+NCHAN_FINE	    4097
+NDIM                1 # Real sample, not complex
+NPOL                1
+TELESCOPE           UNKNOWN
+INSTRUMENT          UNKNOWN
+RECEIVER            UNKNOWN
+RESOLUTION          98304
+START_CHANNEL       0
+TSAMP               0.0009765625
+PKT_TSAMP 	    8
+PKT_NSAMP           8192
+PKT_NPOL            1
+PKT_NCHAN           1
+PKT_NANT            1
+PKT_NBEAM           1
+PKT_HDR_SIZE        8
+PKT_DAT_SIZE        8192
+PKT_SIZE	    8200
+CALFREQ             11.123
+OBSERVER            Andrew
+OBS_OFFSET          0
+PID                 P999
+RA                  04:37
+DEC                 47:15
+SOURCE              J0437-4715
+TOBS                60
+MJD_START	    56400
+UTC_START           2020-01-21-01:01:01
+UTC_STOP            None
+FILE_NUMBER         0
+FILE_SIZE           1024000000 # one second data per file
+STATE               Analytic
+SRC_HOST	    10.17.4.2
+SRC_PORT	    12345
+DATA_HOST           10.17.4.1
+DATA_PORT           12345
+NPKT		    65536
+NAVERAGE 	    2
