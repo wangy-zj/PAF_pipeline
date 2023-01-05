@@ -6,28 +6,40 @@
 
 __global__ void krnl_unpack_1ant1pol(int8_t *input, float *output, int nsamp){
 
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  int index = blockIdx.x * blockDim.x + threadIdx.x*blockDim.y + threadIdx.y;
 
   if(index<nsamp){
     output[index] = (float)input[index];
   }
 }
 
-__global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp, int inter,int chan){
+/*__global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp, int inter,int chan){
 
-  int sample = blockIdx.x;
-  int element = blockIdx.y;
-  int index_out = (blockIdx.x*gridDim.y + blockIdx.x)*4104 + threadIdx.x;
-  int index =  threadIdx.x;
+  int sample = blockIdx.x;   //时间序列
+  int element = blockIdx.y;   //阵元编号
+  int index_out = blockIdx.x*gridDim.y + blockIdx.x;  //upd包编号
+  int index =  threadIdx.x;   //udp包中数据的编号
+  int pkt_sample = 4096/inter;
 
-  if(sample<nsamp && index%inter==chan){
-    if(index>=8){
-    output[index_out+(index-8)/inter] = make_cuComplex((float)input[index],(float)input[index+1]);
+  if(sample<nsamp && index>=8){
+    if((index-8)%inter==chan){
+    output[index_out*pkt_sample +(index-8)/inter] = make_cuComplex((float)input[index],(float)input[index+1]);
     }
   }
+}*/
+
+__global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp, int inter,int chan){
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  if(index<nsamp && index%8==0){
+    output[index] = make_cuFloatComplex((float)input[index],(float)input[index+1]);
+  }
+  /*
+  if(index<nsamp && index%2==0){
+    output[index] = make_cuComplex((float)input[index],(float)input[index+1]);
+}*/
 }
 
-__global__ void krnl_power_beamform_1ant1pol(cuComplex *input, float *output, int reset){
+__global__ void krnl_power_beamform(cuComplex *input, float *output, int reset){
   int block_index = blockIdx.x* blockDim.x;
   int index = blockIdx.x* blockDim.x + threadIdx.x;
   float amp = cuCabsf(input[index]);
@@ -36,6 +48,18 @@ __global__ void krnl_power_beamform_1ant1pol(cuComplex *input, float *output, in
     output[block_index] = 0;
   }else{
     output[block_index] += amp*amp;
+  }
+}
+
+__global__ void krnl_power_zoomfft(cuComplex *input, float *output, int nchan, int reset){
+
+  //int isamp = blockIdx.x;
+  int ichan = threadIdx.x;
+  int index = blockIdx.x* blockDim.x + threadIdx.x;
+  if (ichan < nchan){
+    int amp = cuCabsf(input[index]);
+    output[index] = amp*amp;
+    // looks like numpy.fft.rfft has the same scaling factor as R2C cufft 
   }
 }
 

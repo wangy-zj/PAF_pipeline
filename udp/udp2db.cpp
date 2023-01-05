@@ -133,7 +133,7 @@ int capture(receiver_t conf){
   key_t key = conf.key;
   char *ip = conf.ip;
   int port = conf.port;
-  double tsamp  = conf.dada_header.tsamp;
+  double tsamp  = conf.dada_header.pkt_tsamp;
   
   /* Create socket and set it up */
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); // domain, type, protocol

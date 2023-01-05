@@ -43,7 +43,8 @@ void usage(){
 	  " -gpu/-g <ID>              Run on ID GPU [default: 1]\n"
 	  " -help/-h                  Show help\n",
 	  DADA_DEFAULT_BLOCK_KEY,
-	  DADA_DEFAULT_BLOCK_KEY+20
+	  DADA_DEFAULT_BLOCK_KEY+20,
+    DADA_DEFAULT_BLOCK_KEY+40
 	  );
 }
 
@@ -68,8 +69,8 @@ int main(int argc, char *argv[]){
   key_t beamform_output_key = DADA_DEFAULT_BLOCK_KEY+20;
   key_t zoom_output_key = DADA_DEFAULT_BLOCK_KEY+40;
   int gpu = 0;
-  int nthread = 4096;
-  int nthread_bf = 25;
+  int nthread = 4104;
+  int nthread_bf = 1024;
   int reset = 1;
 
  // 读取解析各项输入参数 
@@ -112,8 +113,8 @@ int main(int argc, char *argv[]){
       break;
 
     case 'z':
-      key_t output_key_tmp;
-      ss = sscanf(optarg, "%x", &output_key_tmp);
+      key_t zoom_key_tmp;
+      ss = sscanf(optarg, "%x", &zoom_key_tmp);
       if(ss != 1) {
 	fprintf(stderr, "PROCESS_ERROR: Could not parse output key from %s, \n", optarg);
 	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
@@ -122,7 +123,7 @@ int main(int argc, char *argv[]){
 	exit(EXIT_FAILURE);
       }
       else{
-	zoom_output_key = output_key_tmp;
+	zoom_output_key = zoom_key_tmp;
       }
       break;
 
@@ -168,7 +169,7 @@ int main(int argc, char *argv[]){
 
   fprintf(stdout, "DEBUG: input_key = %x\n", input_key);
   fprintf(stdout, "DEBUG: beamform_output_key = %x\n", beamform_output_key);
-  fprintf(stdout, "DEBUG: zoom_output_key = %x\n", zoom_output_key);
+  //fprintf(stdout, "DEBUG: zoom_output_key = %x\n", zoom_output_key);
   
   // Setup GPU with ID and print out its name
   cudaDeviceProp prop = {0};
@@ -200,40 +201,6 @@ int main(int argc, char *argv[]){
   }
   fprintf(stdout, "PROCESS_INFO:\tWe have input HDU locked\n");
   fprintf(stdout, "PROCESS_INFO:\tWe have input HDU setup\n");
-  
-  // Now first read configuration from input ring buffer header
-  dada_header_t dada_header = {0};
-  char *input_hbuf = ipcbuf_get_next_read(input_hblock, NULL);
-  read_dada_header(input_hbuf, &dada_header);
-  
-  // 读取输入ring buffer header中的参数
-  double mjd_start = dada_header.mjd_start;
-  int npkt = dada_header.npkt;
-  int Elements = dada_header.nelement;
-  int Beams = dada_header.nbeam;
-  int zoom_nchan = dada_header.zoom_nchan;
-  int pkt_nsamp = dada_header.pkt_nsamp;
-  int pkt_nchan = dada_header.pkt_nchan;
-  int pkt_nbit = dada_header.pkt_nbit;
-  double pkt_tsamp = dada_header.pkt_tsamp;
-  int naverage_bf = dada_header.naverage_bf;
-  int navetage_zoom = dada_header.naverage_zoom;
-  int pkt_header_size = dada_header.pkt_header;
-  int pkt_data_size = dada_header.pkt_data;
-  int pkt_size = pkt_header_size + pkt_data_size;
-  // 根据输入ring buffer 参数计算输出ring buffer的参数
-  int nsamp_packed = npkt*pkt_nsamp;
-
-  // beamform ring buffer parameters
-  int bf_nsamp = nsamp_packed/naverage_bf;
-  int bf_nchan = 1;
-  int bf_bit = sizeof(float);
-  double bf_tsamp = pkt_tsamp*naverage_bf;
-
-  // zoom FFT ring buffer parameters
-  int zoom_nsamp = nsamp_packed/zoom_nchan;
-  int zoom_nbit = sizeof(float);
-  double zoom_tsamp = zoom_nchan*pkt_tsamp;
 
   // Setup beamform output ring buffer
   dada_hdu_t *beamform_output_hdu = dada_hdu_create(NULL);
@@ -246,20 +213,80 @@ int main(int argc, char *argv[]){
   }
 
   // setup zoomFFT output ring buffer
+  /*
   dada_hdu_t *zoom_output_hdu = dada_hdu_create(NULL);
   dada_hdu_set_key(zoom_output_hdu, zoom_output_key);
   if(dada_hdu_connect(zoom_output_hdu) < 0){ 
     fprintf(stderr, "PROCESS_ERROR:\tCan not connect to beamform output hdu with key %x"
 	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    beamform_output_key, __FILE__, __LINE__);
+	    zoom_output_key, __FILE__, __LINE__);
     
     exit(EXIT_FAILURE);    
   }
-
+*/
   ipcbuf_t *beamform_output_dblock = (ipcbuf_t *)(beamform_output_hdu->data_block);
   ipcbuf_t *beamform_output_hblock = (ipcbuf_t *)(beamform_output_hdu->header_block);
+
+  if(dada_hdu_lock_write(beamform_output_hdu) < 0) {
+    fprintf(stderr, "PROCESS_ERROR:\tError locking beamform output HDU, \n"
+	    "which happens at \"%s\", line [%d], has to abort.\n",
+	    __FILE__, __LINE__);
+      
+    exit(EXIT_FAILURE);
+  }
+  fprintf(stdout, "PROCESS_INFO:\tWe have beamform output HDU locked\n");
+  fprintf(stdout, "PROCESS_INFO:\tWe have beamform output HDU setup\n");
+
+  /*
   ipcbuf_t *zoom_output_dblock = (ipcbuf_t *)(zoom_output_hdu->data_block);
   ipcbuf_t *zoom_output_hblock = (ipcbuf_t *)(zoom_output_hdu->header_block);
+
+  // make ourselves the write client
+  if(dada_hdu_lock_write(zoom_output_hdu) < 0) {
+    fprintf(stderr, "ZOOMFFT_ERROR:\tError locking zoomFFT output HDU, \n"
+	    "which happens at \"%s\", line [%d], has to abort.\n",
+	    __FILE__, __LINE__);
+      
+    exit(EXIT_FAILURE);
+  }
+  fprintf(stdout, "PROCESS_INFO:\tWe have zoomFFT output HDU locked\n");
+  fprintf(stdout, "PROCESS_INFO:\tWe have zoomFFT output HDU setup\n");
+  */
+
+  // Now first read configuration from input ring buffer header
+  dada_header_t dada_header = {0};
+  char *input_hbuf = ipcbuf_get_next_read(input_hblock, NULL);
+  read_dada_header(input_hbuf, &dada_header);
+  
+  // 读取输入ring buffer header中的参数
+  //double mjd_start = dada_header.mjd_start;
+  int npkt = dada_header.npkt;
+  int Elements = dada_header.nelement;
+  int Beams = dada_header.nbeam;
+  int zoom_nchan = dada_header.zoom_nchan;
+  int pkt_nsamp = dada_header.pkt_nsamp;
+  //int pkt_nchan = dada_header.pkt_nchan;
+  //int pkt_nbit = dada_header.pkt_nbit;
+  double pkt_tsamp = dada_header.pkt_tsamp;
+  int naverage_bf = dada_header.naverage_bf;
+  //int navetage_zoom = dada_header.naverage_zoom;
+  int pkt_header_size = dada_header.pkt_header;
+  int pkt_data_size = dada_header.pkt_data;
+  int pkt_size = pkt_header_size + pkt_data_size;
+  
+  // 根据输入ring buffer 参数计算输出ring buffer的参数
+  int nsamp_packed = npkt*pkt_nsamp;
+
+  // beamform ring buffer 参数
+  int bf_nsamp = nsamp_packed/naverage_bf;
+  int bf_nchan = 1;
+  int bf_bit = sizeof(float);
+  double bf_tsamp = pkt_tsamp*naverage_bf;
+
+  // zoom FFT ring buffer 参数
+  int zoom_nsamp = nsamp_packed/zoom_nchan;
+  int zoom_nbit = sizeof(float);
+  double zoom_tsamp = zoom_nchan*pkt_tsamp;
   
   fprintf(stdout, "HERE\n");
   fprintf(stdout, "DEBUG: gpu = %d\n", gpu);
@@ -272,12 +299,12 @@ int main(int argc, char *argv[]){
   // 计算输入输出 ringbffer block的大小，并与dada header匹配
   int input_dbuf_size = pkt_size*npkt*sizeof(int8_t);       //input ringbuffer
   int beamform_dbuf_size = nsamp_packed*bf_nchan*Beams*sizeof(float); //beamform ringbuffer
-  int zoom_dbuf_size = Beams*zoom_nchan*zoom_nsamp*sizeof(float); //zoom fft ringbuffer
+  //int zoom_dbuf_size = Beams*zoom_nchan*zoom_nsamp*sizeof(float); //zoom fft ringbuffer
   fprintf(stdout, "DEBUG: input_dbuf_size = %d\n", input_dbuf_size);
   fprintf(stdout, "DEBUG: beamform_dbuf_size = %d\n", beamform_dbuf_size);
   unsigned bytes_block_input  = ipcbuf_get_bufsz(input_dblock);
   unsigned bytes_block_beamform = ipcbuf_get_bufsz(beamform_output_dblock);
-  unsigned bytes_block_zoom = ipcbuf_get_bufsz(zoom_output_dblock);
+  //unsigned bytes_block_zoom = ipcbuf_get_bufsz(zoom_output_dblock);
 
   fprintf(stdout, "PROCESS_INFO:\tinput buffer block size is %d bytes, output buffer block size is %d bytes\n",
 	  bytes_block_input, bytes_block_beamform);
@@ -304,6 +331,7 @@ int main(int argc, char *argv[]){
   }
   fprintf(stdout, "PROCESS_INFO:\tWe have beamform output buffer block size checked\n");
 
+  /*
   if (bytes_block_zoom!=zoom_dbuf_size){
     fprintf(stderr, "PROCESS_ERROR:\tzoomFFT output buffer block size mismatch, "
 	    "%d vs %d "
@@ -314,130 +342,88 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE);
   }
   fprintf(stdout, "PROCESS_INFO:\tWe have zoomFFT output buffer block size checked\n");
+*/
 
   // now we can setup new dada header buffer for output
-  char *beamform_hbuf = ipcbuf_get_next_write(beamform_output_hblock);
-    // make ourselves the write client
-  if(dada_hdu_lock_write(beamform_output_hdu) < 0) {
-    fprintf(stderr, "PROCESS_ERROR:\tError locking beamform output HDU, \n"
-	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    __FILE__, __LINE__);
-      
-    exit(EXIT_FAILURE);
-  }
-  fprintf(stdout, "PROCESS_INFO:\tWe have beamform output HDU locked\n");
-  fprintf(stdout, "PROCESS_INFO:\tWe have beamform output HDU setup\n");
-
+  char *beamform_hbuf = ipcbuf_get_next_write (beamform_output_hblock);
+  memcpy(beamform_hbuf, input_hbuf, DADA_DEFAULT_HEADER_SIZE);
   // setup beamform output ring buffer header
-  if (ascii_header_set(beamform_hbuf, "MJD_START", "%f", mjd_start) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NSAMP, "
-            "which happens at %s, line [%d].\n",
-            __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-
-  if (ascii_header_set(beamform_hbuf, "NBEAM", "%d", Beams) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NBEAM, "
-            "which happens at %s, line [%d].\n",
-            __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
 
   if (ascii_header_set(beamform_hbuf, "BF_NSAMP", "%d", bf_nsamp) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting BF_NSAMP, "
+    fprintf(stderr, "BEAMFORM_ERROR: Error setting BF_NSAMP, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
 
   if (ascii_header_set(beamform_hbuf, "BF_NCHAN", "%d", bf_nchan) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NCHAN, "
+    fprintf(stderr, "BEAMFORM_ERROR: Error setting NCHAN, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   } 
 
   if (ascii_header_set(beamform_hbuf, "BF_NBIT", "%d", bf_bit) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NBIT, "
+    fprintf(stderr, "BEAMFORM_ERROR: Error setting NBIT, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
 
   if (ascii_header_set(beamform_hbuf, "BF_TSAMP", "%f", bf_tsamp) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting TSAMP, "
+    fprintf(stderr, "BEAMFORM_ERROR: Error setting TSAMP, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
 
   // zoom FFT ring buffer header
-  char *zoom_hbuf = ipcbuf_get_next_write(zoom_output_hblock);
-    // make ourselves the write client
-  if(dada_hdu_lock_write(zoom_output_hdu) < 0) {
-    fprintf(stderr, "PROCESS_ERROR:\tError locking zoomFFT output HDU, \n"
-	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    __FILE__, __LINE__);
-      
-    exit(EXIT_FAILURE);
-  }
-  fprintf(stdout, "PROCESS_INFO:\tWe have zoomFFT output HDU locked\n");
-  fprintf(stdout, "PROCESS_INFO:\tWe have zoomFFT output HDU setup\n");
-
+  /*
+  char *zoom_hbuf = ipcbuf_get_next_write (beamform_output_hblock);
+  memcpy(zoom_hbuf, input_hbuf, DADA_DEFAULT_HEADER_SIZE);
   // setup zoom FFT output ring buffer header
-  if (ascii_header_set(zoom_hbuf, "MJD_START", "%f", mjd_start) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NSAMP, "
-            "which happens at %s, line [%d].\n",
-            __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-
-  if (ascii_header_set(zoom_hbuf, "NBEAM", "%d", Beams) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NBEAM, "
-            "which happens at %s, line [%d].\n",
-            __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
 
   if (ascii_header_set(zoom_hbuf, "ZOOM_NSAMP", "%d", zoom_nsamp) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting BF_NSAMP, "
+    fprintf(stderr, "ZOOMFFT_ERROR: Error setting BF_NSAMP, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
 
   if (ascii_header_set(zoom_hbuf, "ZOOM_NCHAN", "%d", zoom_nchan) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NCHAN, "
+    fprintf(stderr, "ZOOMFFT_ERROR: Error setting NCHAN, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   } 
 
   if (ascii_header_set(zoom_hbuf, "ZOOM_NBIT", "%d", zoom_nbit) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting NBIT, "
+    fprintf(stderr, "ZOOMFFT_ERROR: Error setting NBIT, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
 
   if (ascii_header_set(zoom_hbuf, "ZOOM_TSAMP", "%f", zoom_tsamp) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting TSAMP, "
+    fprintf(stderr, "ZOOMFFT_ERROR: Error setting TSAMP, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
-
+*/
   ipcbuf_mark_cleared(input_hblock);
   ipcbuf_mark_filled(beamform_output_hblock, DADA_DEFAULT_HEADER_SIZE);
-  ipcbuf_mark_filled(zoom_output_hblock, DADA_DEFAULT_HEADER_SIZE);
+  //ipcbuf_mark_filled(zoom_output_hblock, DADA_DEFAULT_HEADER_SIZE);
 
   // Setup parameters for beamformer
   const cuComplex alpha(make_cuComplex(1,0));
   const cuComplex beta(make_cuComplex(0,0));
 
   // Setup kernel dims
-  dim3 grid_unpack(npkt*pkt_nsamp,Elements);
-  dim3 grid_beamform(nsamp_packed*Elements/nthread +1);
+  //dim3 grid_unpack(npkt/Elements);
+  //dim3 thread_unpack(Elements,pkt_size);
+  dim3 grid_unpack(nsamp_packed/128+1);
+  //dim3 grid_beamform(nsamp_packed*Elements/nthread +1);
   dim3 grid_taccumulate(nsamp_packed*Beams/nthread_bf+1);
   
 
@@ -452,11 +438,13 @@ int main(int argc, char *argv[]){
   int size_C = nsamp_packed*Beams;
   float *h_B_real = (float *)malloc(sizeof(float)*size_B);
   float *h_B_imag = (float *)malloc(sizeof(float)*size_B);
-  float *d_B_real, *d_B_imag, *d_beamform_power;
+  cuComplex *h_B = (cuComplex *)malloc(sizeof(cuComplex)*size_B);
+  float *d_beamform_power;
 
   for (int i=0; i<size_B; ++i){
         h_B_real[i] = 1;
         h_B_imag[i] = 0;
+        h_B[i] = make_cuFloatComplex(*h_B_real,*h_B_imag);
   }
   checkCudaErrors(cudaMalloc(&d_packed, input_dbuf_size));
   checkCudaErrors(cudaMalloc(&d_unpacked, nsamp_packed*sizeof(float)));
@@ -464,8 +452,6 @@ int main(int argc, char *argv[]){
   checkCudaErrors(cudaMalloc(&d_A, size_A*sizeof(cuComplex)));
   checkCudaErrors(cudaMalloc(&d_B, size_B*sizeof(cuComplex)));
   checkCudaErrors(cudaMalloc(&d_C, size_C*sizeof(cuComplex)));
-  checkCudaErrors(cudaMalloc(&d_B_real,sizeof(float)*size_B));
-  checkCudaErrors(cudaMalloc(&d_B_imag,sizeof(float)*size_B));
   checkCudaErrors(cudaMalloc(&d_beamform_power,sizeof(float)*size_C));
 
   fprintf(stdout, "PROCESS_INFO:\t device input buffer size is %lud bytes\n", pkt_nsamp*sizeof(int8_t));
@@ -508,7 +494,6 @@ int main(int argc, char *argv[]){
   while(!ipcbuf_eod(input_dblock)){
 
     fprintf(stdout, "We are at %d block\n", nblock);
-    
     // block memory copy,
     char *input_cbuf = ipcbuf_get_next_read(input_dblock, NULL);
     if(!input_cbuf){
@@ -518,8 +503,7 @@ int main(int argc, char *argv[]){
     
     CUDA_STARTTIME(memcpyh2d);  
     checkCudaErrors(cudaMemcpy(d_packed, input_cbuf, bytes_block_input, cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_B_real, h_B_real, size_B*sizeof(float), cudaMemcpyHostToDevice));
-    checkCudaErrors(cudaMemcpy(d_B_imag, h_B_imag, size_B*sizeof(float), cudaMemcpyHostToDevice));
+    checkCudaErrors(cudaMemcpy(d_B, h_B, size_B*sizeof(cuComplex), cudaMemcpyHostToDevice));
     CUDA_STOPTIME(memcpyh2d); 
     ipcbuf_mark_cleared(input_dblock);
     fprintf(stdout, "Memory copy from host to device of %d block done\n", nblock);
@@ -527,10 +511,7 @@ int main(int argc, char *argv[]){
     //krnl_unpack_1ant1pol<<<grid_unpack, nthread>>>(d_packed, d_unpacked, nsamp_packed);
     //getLastCudaError("Kernel execution failed [ krnl_unpack_1ant1pol ]");
 
-    float_cucomplex<<<grid_beamform, nthread>>>(d_B_real,d_B_imag,d_B);
-    getLastCudaError("Kernel execution failed [ float_cucomplex ]");
-
-    krnl_unpack<<<grid_unpack, nthread>>>(d_packed, d_A, npkt/Elements, 8, 0);
+    krnl_unpack<<<grid_unpack, 128>>>(d_packed, d_A, npkt/Elements, 8, 0);
     getLastCudaError("Kernel execution failed [ krnl_unpack ]");
 
     /*handle cublas 句柄
@@ -561,17 +542,20 @@ int main(int argc, char *argv[]){
                   &beta,
                   d_C,
                   Beams);
+    getLastCudaError("Kernel execution failed [ beamform ]");
     
     //checkCudaErrors(cufftExecR2C(fft_plan, d_unpacked, d_ffted));
-    
+
     //krnl_power_taccumulate_1ant1pol<<<grid_taccumulate, nthread>>>(d_C, d_result, nfft, nchan_fine, reset);
-    krnl_power_beamform_1ant1pol<<<grid_taccumulate, nthread_bf>>>(d_C,d_beamform_power,reset);
+    krnl_power_beamform<<<grid_taccumulate, nthread_bf>>>(d_C,d_beamform_power,reset);
     getLastCudaError("Kernel execution failed [ krnl_power_taccumulate_1ant1pol ]");
-  
-    
-    //// we copy data to ring buffer only when we get naverage blocks done
-    //// block memory copy
-    //// We will not get any output if the runtime is short than integration time
+
+    /*
+    补充zoom fft代码，输入为beamform的输出d_C
+    */
+
+    nblock++;
+    //// 将输出的结果复制到输出ringbuffer
     char *output_cbuf = ipcbuf_get_next_write(beamform_output_dblock);
     if(!output_cbuf){
       fprintf(stderr, "Could not get next write data block\n");
@@ -583,6 +567,7 @@ int main(int argc, char *argv[]){
     ipcbuf_mark_filled(beamform_output_dblock, bytes_block_beamform);
 
     fprintf(stdout, "we copy data out\n");
+  }
     
     CUDA_STOPTIME(pipeline);
 
@@ -594,13 +579,13 @@ int main(int argc, char *argv[]){
     
     dada_hdu_unlock_read(input_hdu);
     dada_hdu_unlock_write(beamform_output_hdu);
-    dada_hdu_unlock_write(zoom_output_hdu);
+    //dada_hdu_unlock_write(zoom_output_hdu);
     //checkCudaErrors(cufftDestroy(fft_plan));
     checkCudaErrors(cublasDestroy(multi_plan)); 
 
     dada_hdu_destroy(input_hdu);
     dada_hdu_destroy(beamform_output_hdu);
-    dada_hdu_destroy(zoom_output_hdu);
+    //dada_hdu_destroy(zoom_output_hdu);
     
     return EXIT_SUCCESS;
 }    
