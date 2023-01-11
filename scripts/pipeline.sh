@@ -7,7 +7,7 @@ $echo "This is a pipeline for beamforming at NAOC\n"
 # There will be three ring buffers
 # The first one is used to receive raw data
 # The second one is used to receive beamformed data
-# The last one is used to receive zoom data
+# The last one is used to receive zoom fft data
 
 # The first ring buffer need two readers as we need to read its data to GPU and write its data to disk
 # The second ring buffer has only one reader
@@ -25,11 +25,11 @@ $echo "key_zoo is $key_zoo"
 
 nreader_raw=128
 nreader_bmf=1
-#nreader_zoo=1
+nreader_zoo=1
 
 $echo "nreader_raw is $nreader_raw"
 $echo "nreader_bmf is $nreader_bmf"
-#$echo "nreader_zoo is $nreader_zoo"
+$echo "nreader_zoo is $nreader_zoo"
 
 # it will be more flexible if we put equation here to calculate buffer size with some basic configrations
 bufsz_raw=50429952 # buffer block size to hold raw data in bytes, change it to real value later

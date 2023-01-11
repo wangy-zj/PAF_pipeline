@@ -208,9 +208,9 @@ int main(int argc, char *argv[]){
   // parse values from header buffer
   int npkt = dada_header.npkt;
   int pkt_nsamp = dada_header.pkt_nsamp;
-  int nchan_fine = dada_header.nchan_fine;
+  int nchan_fine = dada_header.zoom_nchan;
   double pkt_tsamp = dada_header.pkt_tsamp;
-  int naverage = dada_header.naverage;
+  int naverage = dada_header.naverage_zoom;
   
   int nsamp_packed = npkt*pkt_nsamp;
   int nfft_point = (nchan_fine-1)*2;

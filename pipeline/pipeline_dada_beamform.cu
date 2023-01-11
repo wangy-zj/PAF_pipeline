@@ -259,14 +259,12 @@ int main(int argc, char *argv[]){
   read_dada_header(input_hbuf, &dada_header);
   
   // 读取输入ring buffer header中的参数
-  //double mjd_start = dada_header.mjd_start;
+  double mjd_start = dada_header.mjd_start;
   int npkt = dada_header.npkt;
   int Elements = dada_header.nelement;
   int Beams = dada_header.nbeam;
   int zoom_nchan = dada_header.zoom_nchan;
   int pkt_nsamp = dada_header.pkt_nsamp;
-  //int pkt_nchan = dada_header.pkt_nchan;
-  //int pkt_nbit = dada_header.pkt_nbit;
   double pkt_tsamp = dada_header.pkt_tsamp;
   int naverage_bf = dada_header.naverage_bf;
   //int navetage_zoom = dada_header.naverage_zoom;
@@ -429,7 +427,6 @@ int main(int argc, char *argv[]){
 
   // Setup cuda buffers
   int8_t *d_packed = NULL;
-  //cuComplex *d_ffted = NULL;
   float *d_unpacked = NULL;
   float *d_result = NULL;
   cuComplex *d_A, *d_B, *d_C;
@@ -456,12 +453,6 @@ int main(int argc, char *argv[]){
 
   fprintf(stdout, "PROCESS_INFO:\t device input buffer size is %lud bytes\n", pkt_nsamp*sizeof(int8_t));
   
-  // setup the matrix-matrix multiplication
-  // setup FFT
-  //cufftHandle fft_plan;
-  //checkCudaErrors(cufftPlan1d(&fft_plan, nfft_point, CUFFT_R2C, nfft));
-  //print_cuda_memory_info();
-
   // setup beamformer
   cublasHandle_t multi_plan;
   cublasCreate(&multi_plan);
@@ -508,10 +499,7 @@ int main(int argc, char *argv[]){
     ipcbuf_mark_cleared(input_dblock);
     fprintf(stdout, "Memory copy from host to device of %d block done\n", nblock);
 
-    //krnl_unpack_1ant1pol<<<grid_unpack, nthread>>>(d_packed, d_unpacked, nsamp_packed);
-    //getLastCudaError("Kernel execution failed [ krnl_unpack_1ant1pol ]");
-
-    krnl_unpack<<<grid_unpack, 128>>>(d_packed, d_A, npkt/Elements, 8, 0);
+    krnl_unpack<<<grid_unpack, 128>>>(d_packed, d_A, nsamp_packed*Elements, 8, 0);
     getLastCudaError("Kernel execution failed [ krnl_unpack ]");
 
     /*handle cublas 句柄
@@ -543,29 +531,41 @@ int main(int argc, char *argv[]){
                   d_C,
                   Beams);
     getLastCudaError("Kernel execution failed [ beamform ]");
-    
-    //checkCudaErrors(cufftExecR2C(fft_plan, d_unpacked, d_ffted));
 
-    //krnl_power_taccumulate_1ant1pol<<<grid_taccumulate, nthread>>>(d_C, d_result, nfft, nchan_fine, reset);
     krnl_power_beamform<<<grid_taccumulate, nthread_bf>>>(d_C,d_beamform_power,reset);
-    getLastCudaError("Kernel execution failed [ krnl_power_taccumulate_1ant1pol ]");
+    getLastCudaError("Kernel execution failed [ krnl_power_beamform ]");
 
     /*
-    补充zoom fft代码，输入为beamform的输出d_C
+    补充zoom fft代码，输入为beamform的输出d_C，zoom_nchan为ZOOM FFT的通道数，输出为d_zoom
+
+     krnl_power_zoomfft<<<grid_taccumulate, ntherad_zoom>>>(d_zoom,d_zoom_power)
+     getLastCudaError("Kernel execution fialed [ krnl_power_zoom ]")
     */
+
+
 
     nblock++;
     //// 将输出的结果复制到输出ringbuffer
-    char *output_cbuf = ipcbuf_get_next_write(beamform_output_dblock);
-    if(!output_cbuf){
-      fprintf(stderr, "Could not get next write data block\n");
+    char *output_bf = ipcbuf_get_next_write(beamform_output_dblock);
+    if(!output_bf){
+      fprintf(stderr, "Could not get next beamform write data block\n");
       exit(EXIT_FAILURE);
     }
     CUDA_STARTTIME(memcpyd2h);  
-    checkCudaErrors(cudaMemcpy(output_cbuf, d_beamform_power, bytes_block_beamform, cudaMemcpyDeviceToHost));
+    checkCudaErrors(cudaMemcpy(output_bf, d_beamform_power, bytes_block_beamform, cudaMemcpyDeviceToHost));
     CUDA_STOPTIME(memcpyd2h);  
     ipcbuf_mark_filled(beamform_output_dblock, bytes_block_beamform);
-
+/*
+    char *output_zoom = ipcbuf_get_next_write(zoom_output_dblock);
+    if(!output_zoom){
+      fprintf(stderr, "Could not get next zoom write data block\n");
+      exit(EXIT_FAILURE);
+    }
+    CUDA_STARTTIME(memcpyd2h);  
+    checkCudaErrors(cudaMemcpy(output_zoom, d_zoom_power, bytes_block_zoom, cudaMemcpyDeviceToHost));
+    CUDA_STOPTIME(memcpyd2h);  
+    ipcbuf_mark_filled(zoom_output_dblock, bytes_block_zoom);
+*/
     fprintf(stdout, "we copy data out\n");
   }
     
@@ -580,7 +580,6 @@ int main(int argc, char *argv[]){
     dada_hdu_unlock_read(input_hdu);
     dada_hdu_unlock_write(beamform_output_hdu);
     //dada_hdu_unlock_write(zoom_output_hdu);
-    //checkCudaErrors(cufftDestroy(fft_plan));
     checkCudaErrors(cublasDestroy(multi_plan)); 
 
     dada_hdu_destroy(input_hdu);
