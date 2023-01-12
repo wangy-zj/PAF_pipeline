@@ -4,7 +4,7 @@ BYTES_PER_SECOND    1024000000 # For 1 seconds
 RESOLUTION          98304
 OBS_OFFSET          0
 MJD_START	        56400      #时间戳
-NPKT		        12288      #ringbuffer中包含的udp包数目       
+NPKT		        512      #ringbuffer中包含的udp包数目       
 NELEMENT            12         #馈源阵元数目
 NBEAM               1          #合成波束数目
 ZOOM_NCHAN          2048       #ZOOM FFT通道数目
@@ -13,8 +13,8 @@ PKT_DATA            4096       #udp包数据大小 （Byte）
 PKT_NSAMP           512        #udp包中采样数
 PKT_NCHAN           4          #udp包中频率通道数目
 PKT_TSAMP           1          #udp包中采样时间间隔 （us）
-PKT_NPOL            1          #udp包中偏振通道数目
+PKT_NPOL            2          #udp包中偏振通道数目
 PKT_NBIT            1          #udp包中数据大小 （Byte）
-NAVERAGE_BF 	    25
+NAVERAGE_BF 	    1
 NAVERAGE_ZOOM 	    1
 UTC_START           2023-01-03-01:01:01

@@ -45,9 +45,9 @@ __global__ void krnl_unpack_1ant1pol(int8_t *input, float *output, int nsamp);
 */
 __global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp, int inter,int chan);
 
-__global__ void krnl_power_beamform(cuComplex *input, float *output, int reset);
+__global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_acc, int naverage, int reset);
 
-__global__ void krnl_power_zoomfft(cuComplex *input, float *output, int reset);
+__global__ void krnl_power_zoomfft(cuComplex *input, float *output, int nfft, int nchan, int reset);
 
 __global__ void krnl_power_taccumulate_1ant1pol(cuComplex *input, float *output, int nfft, int nchan, int reset);
 

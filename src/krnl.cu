@@ -12,24 +12,41 @@ __global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp, int int
   }
 }
 
-__global__ void krnl_power_beamform(cuComplex *input, float *output, int reset){
-  int block_index = blockIdx.x* blockDim.x;
-  int index = blockIdx.x* blockDim.x + threadIdx.x;
-  float amp = cuCabsf(input[index]);
-  __syncthreads();
-  if(reset){
-    output[block_index] = 0;
-  }else{
-    output[block_index] += amp*amp;
+__global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_accu, int naverage, int reset){
+  int index = blockIdx.x * blockDim.x + threadIdx.x;
+  if (index < nsamp_accu){
+    float accumulate = 0;
+    for(int i = 0; i< naverage; i++){
+      int index_data = nsamp_accu*naverage + i;
+      float amp = cuCabsf(input[index_data]);
+      accumulate +=(amp*amp);
+    }
+    if(reset){
+    output[index] = accumulate;
+    }else{
+    output[index] += accumulate;
+  }
   }
 }
 
-__global__ void krnl_power_zoomfft(cuComplex *input, float *output){
+__global__ void krnl_power_zoomfft(cuComplex *input, float *output, int nfft, int nchan, int reset){
+  int ichan = blockIdx.x*blockDim.x + threadIdx.x;
+  if (ichan < nchan){
+    float accumulate = 0;
+    
+    for(int ifft = 0; ifft < nfft; ifft++){
+      int index = ifft*nchan + ichan;
+      float amp = cuCabsf(input[index]);
+      accumulate += (amp*amp); // power, not amp
+    }
 
-  //int isamp = blockIdx.x;
-  int index = blockIdx.x* blockDim.x + threadIdx.x;
-  int amp = cuCabsf(input[index]);
-  output[index] = amp*amp;
+    // looks like numpy.fft.rfft has the same scaling factor as R2C cufft 
+    if(reset){
+      output[ichan] = accumulate;
+    }else{
+      output[ichan] += accumulate;
+    }
+  }
 }
 
 

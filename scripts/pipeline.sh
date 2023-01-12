@@ -32,9 +32,9 @@ $echo "nreader_bmf is $nreader_bmf"
 $echo "nreader_zoo is $nreader_zoo"
 
 # it will be more flexible if we put equation here to calculate buffer size with some basic configrations
-bufsz_raw=50429952 # buffer block size to hold raw data in bytes, change it to real value later
-bufsz_bmf=25165824 # buffer block size to hold beamformed data in bytes, change it to real value later
-bufsz_zoo=25165824 # buffer block size to hold zoom data in bytes, change it to real value later
+bufsz_raw=50331648 # buffer block size to hold raw data in bytes, change it to real value later
+bufsz_bmf=1048576 # buffer block size to hold beamformed data in bytes, change it to real value later
+bufsz_zoo=1048576 # buffer block size to hold zoom data in bytes, change it to real value later
 
 $echo "bufsz_raw is $bufsz_raw"
 $echo "bufsz_bmf is $bufsz_bmf"
@@ -82,7 +82,7 @@ $writer_zoo & # should be unblock
 
 # now gpu pipeline
 $echo "Starting process"
-process="../build/pipeline/pipeline_dada_beamform -i $key_raw -o $key_bmf -n $nreader_raw -g 0" # need to add other configurations as well
+process="../build/pipeline/pipeline_dada_beamform -i $key_raw -o $key_bmf -z $key_zoo -n $nreader_raw -g 0" # need to add other configurations as well
 $echo "process $process\n"
 $process & # should be unblock
 
@@ -92,8 +92,8 @@ $process & # should be unblock
 # however with the current setup, dada_dbdisk does not stop with the signal
 # we need to kill it in the end 
 $echo "Starting udp2db"
-udp2db="../build/udp/udp2db -k $key_raw -i 10.11.4.54 -p 12345 -f ../header/512MHz_1ant1pol_4096B.header -m 56400" # need to add more configuration
-#udp2db="../build/udp/udp2db -k $key_raw -i 10.11.4.54 -p 12345 -f ../header/512MHz_beamform_4096B.header -m 56400" # need to add more configuration
+#udp2db="../build/udp/udp2db -k $key_raw -i 10.11.4.54 -p 12345 -f ../header/512MHz_1ant1pol_4096B.header -m 56400" # need to add more configuration
+udp2db="../build/udp/udp2db -k $key_raw -i 10.11.4.54 -p 12345 -f ../header/512MHz_beamform_4096B.header -m 56400" # need to add more configuration
 $echo "udp2db $udp2db\n"
 $udp2db
 
