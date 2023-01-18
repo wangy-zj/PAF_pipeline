@@ -16,13 +16,22 @@ src和include：依赖的C文件和头文件
        
        raw（原始输入），bmf（波束合成之后），zoo（zoom fft之后）
        
-       设置ringbuffer关键字： a000， b000, c000
+       1）设置ringbuffer关键字： a000， b000, c000
        
-       设置程序运行的线程数
+       2）设置程序运行的线程数
        
-       设置ringbffer大小： bufsz_raw, bufsz_bmf, bufsz_zoo
+       3）设置ringbffer大小： bufsz_raw, bufsz_bmf, bufsz_zoo
        
-       根据设置参数创建3个ringbuffer
+       计算各ringbuffer的大小
+       
+       输入（a000）：npkt×nelement×npol×pkt_data×sizeof(int8_t)
+       
+       beamform输出功率（b000）： npkt×pkt_nsamp×beam×bf_nchan×sizeof(float)/naverage_bf
+       
+       zoomfft输出功率（c000）：zoom_nsamp×zoom_nchan×bf_nchan×sizeof（float）/naverage_zoom
+
+       
+       4）根据设置参数创建3个ringbuffer
         
        2. 数据存储
        
@@ -38,5 +47,5 @@ src和include：依赖的C文件和头文件
        
 ## 运行
        bash pipeline.sh
-       udpgen -i 10.11.4.54 -p 12346 -I 10.11.4.54 -P 12345 -r 10
+       udpgen -i 10.11.4.54 -p 12346 -I 10.11.4.54 -P 12345 -r 10   （ip和port根据实际情况修改，-i和-p为发送端，-I和-P为接收端）
 
