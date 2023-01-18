@@ -32,9 +32,9 @@ $echo "nreader_bmf is $nreader_bmf"
 $echo "nreader_zoo is $nreader_zoo"
 
 # it will be more flexible if we put equation here to calculate buffer size with some basic configrations
-bufsz_raw=50331648 # buffer block size to hold raw data in bytes, change it to real value later
-bufsz_bmf=1048576 # buffer block size to hold beamformed data in bytes, change it to real value later
-bufsz_zoo=1048576 # buffer block size to hold zoom data in bytes, change it to real value later
+bufsz_raw=25165824 # buffer block size to hold raw data in bytes, change it to real value later
+bufsz_bmf=20971 # buffer block size to hold beamformed data in bytes, change it to real value later
+bufsz_zoo=20971 # buffer block size to hold zoom data in bytes, change it to real value later
 
 $echo "bufsz_raw is $bufsz_raw"
 $echo "bufsz_bmf is $bufsz_bmf"

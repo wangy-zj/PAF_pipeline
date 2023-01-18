@@ -260,6 +260,7 @@ int main(int argc, char *argv[]){
   
   // 读取输入ring buffer header中的参数
   double mjd_start = dada_header.mjd_start;
+  
   int npkt = dada_header.npkt;
   int Elements = dada_header.nelement;
   int Beams = dada_header.nbeam;
@@ -349,6 +350,13 @@ int main(int argc, char *argv[]){
   memcpy(beamform_hbuf, input_hbuf, DADA_DEFAULT_HEADER_SIZE);
   // setup beamform output ring buffer header
 
+  if (ascii_header_set(beamform_hbuf, "MJD_START", "%d", mjd_start) < 0)  {
+    fprintf(stderr, "BEAMFORM_ERROR: Error setting MJD_START, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   if (ascii_header_set(beamform_hbuf, "BF_NSAMP", "%d", bf_nsamp) < 0)  {
     fprintf(stderr, "BEAMFORM_ERROR: Error setting BF_NSAMP, "
             "which happens at %s, line [%d].\n",
@@ -381,6 +389,12 @@ int main(int argc, char *argv[]){
   char *zoom_hbuf = ipcbuf_get_next_write (beamform_output_hblock);
   memcpy(zoom_hbuf, input_hbuf, DADA_DEFAULT_HEADER_SIZE);
   // setup zoom FFT output ring buffer header
+  if (ascii_header_set(zoom_hbuf, "MJD_START", "%d", mjd_start) < 0)  {
+    fprintf(stderr, "ZOOMFFT_ERROR: Error setting MJD_START, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
 
   if (ascii_header_set(zoom_hbuf, "ZOOM_NSAMP", "%d", zoom_nsamp) < 0)  {
     fprintf(stderr, "ZOOMFFT_ERROR: Error setting BF_NSAMP, "
@@ -414,9 +428,6 @@ int main(int argc, char *argv[]){
   ipcbuf_mark_filled(beamform_output_hblock, DADA_DEFAULT_HEADER_SIZE);
   ipcbuf_mark_filled(zoom_output_hblock, DADA_DEFAULT_HEADER_SIZE);
 
-  // Setup parameters for beamformer
-  const cuComplex alpha(make_cuComplex(1,0));
-  const cuComplex beta(make_cuComplex(0,0));
 
   // Setup kernel dims
   dim3 grid_unpack(nsamp_packed/128+1);
@@ -427,10 +438,8 @@ int main(int argc, char *argv[]){
   grid_pow.x = (zoom_nchan - 1 + blck_pow.x) / blck_pow.x;
   
 
-  // Setup cuda buffers
+  // setup beamformer
   int8_t *d_packed = NULL;
-  float *d_unpacked = NULL;
-  float *d_result = NULL;
   cuComplex *d_A, *d_B, *d_C, *d_zoom;
   int size_A = nsamp_packed*Elements;
   int size_B = Elements*Beams;
@@ -439,6 +448,8 @@ int main(int argc, char *argv[]){
   float *h_B_imag = (float *)malloc(sizeof(float)*size_B);
   cuComplex *h_B = (cuComplex *)malloc(sizeof(cuComplex)*size_B);
   float *d_beamform_power, *d_zoom_power;
+  const cuComplex alpha(make_cuComplex(1,0));
+  const cuComplex beta(make_cuComplex(0,0));
 
   for (int i=0; i<size_B; ++i){
         h_B_real[i] = 1;
@@ -446,23 +457,20 @@ int main(int argc, char *argv[]){
         h_B[i] = make_cuFloatComplex(*h_B_real,*h_B_imag);
   }
   checkCudaErrors(cudaMalloc(&d_packed, input_dbuf_size));
-  checkCudaErrors(cudaMalloc(&d_unpacked, nsamp_packed*sizeof(float)));
-  checkCudaErrors(cudaMalloc(&d_result, beamform_dbuf_size));
-  checkCudaErrors(cudaMalloc(&d_A, size_A*sizeof(cuComplex)));
-  checkCudaErrors(cudaMalloc(&d_B, size_B*sizeof(cuComplex)));
-  checkCudaErrors(cudaMalloc(&d_C, size_C*sizeof(cuComplex)));
+  checkCudaErrors(cudaMalloc(&d_A, size_A*sizeof(cuComplex)));     // element input
+  checkCudaErrors(cudaMalloc(&d_B, size_B*sizeof(cuComplex)));     // beamform weights
+  checkCudaErrors(cudaMalloc(&d_C, size_C*sizeof(cuComplex)));     // beamform output
   checkCudaErrors(cudaMalloc(&d_beamform_power,sizeof(float)*size_C));
   checkCudaErrors(cudaMalloc(&d_zoom, nsamp_packed * sizeof(cufftComplex)));
   checkCudaErrors(cudaMalloc(&d_zoom_power, nsamp_packed * sizeof(float)));
 
-  fprintf(stdout, "PROCESS_INFO:\t device input buffer size is %lud bytes\n", pkt_nsamp*sizeof(int8_t));
+  //fprintf(stdout, "PROCESS_INFO:\t device input buffer size is %lud bytes\n", pkt_nsamp*sizeof(int8_t));
   
-  // setup beamformer
   cublasHandle_t multi_plan;
   cublasCreate(&multi_plan);
 
   // setup zoom FFT
-  cufftHandle plan;
+  cufftHandle fftplan;
 	const int rank = 1;   // 一维FFT
 	int n[rank] = {zoom_nchan};
 	int inembed[2] = {zoom_nchan, zoom_nsamp};
@@ -473,7 +481,7 @@ int main(int argc, char *argv[]){
 	int odist = zoom_nchan;
 	int batch = zoom_nsamp;
 
-	cufftPlanMany(&plan, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2C, batch);
+	cufftPlanMany(&fftplan, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2C, batch);
   print_cuda_memory_info();
 
   // Setup timer
@@ -563,7 +571,7 @@ int main(int argc, char *argv[]){
 
     
     //补充zoom fft代码，输入为beamform的输出d_C，zoom_nchan为ZOOM FFT的通道数，输出为d_zoom
-    cufftExecC2C(plan, d_C, d_zoom, CUFFT_FORWARD);
+    cufftExecC2C(fftplan, d_C, d_zoom, CUFFT_FORWARD);
     krnl_power_zoomfft<<<grid_pow, blck_pow>>>(d_zoom,d_zoom_power, zoom_nsamp, zoom_nchan,reset_zoom);
     getLastCudaError("Kernel execution fialed [ krnl_power_zoom ]");
     
@@ -615,7 +623,14 @@ int main(int argc, char *argv[]){
     dada_hdu_unlock_write(beamform_output_hdu);
     dada_hdu_unlock_write(zoom_output_hdu);
     checkCudaErrors(cublasDestroy(multi_plan));
-    checkCudaErrors(cufftDestroy(plan)); 
+    checkCudaErrors(cufftDestroy(fftplan)); 
+    checkCudaErrors(cudaFree(d_packed));
+    checkCudaErrors(cudaFree(d_A));
+    checkCudaErrors(cudaFree(d_B));
+    checkCudaErrors(cudaFree(d_C));
+    checkCudaErrors(cudaFree(d_beamform_power));
+    checkCudaErrors(cudaFree(d_zoom));
+    checkCudaErrors(cudaFree(d_zoom_power));
 
     dada_hdu_destroy(input_hdu);
     dada_hdu_destroy(beamform_output_hdu);
