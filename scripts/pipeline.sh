@@ -91,11 +91,15 @@ $process & # should be unblock
 # it mask ring buffer to tell other program to stop when it stops
 # however with the current setup, dada_dbdisk does not stop with the signal
 # we need to kill it in the end 
-$echo "Starting udp2db"
+#$echo "Starting udp2db"
 #udp2db="../build/udp/udp2db -k $key_raw -i 10.11.4.54 -p 12345 -f ../header/512MHz_1ant1pol_4096B.header -m 56400" # need to add more configuration
-udp2db="../build/udp/udp2db -k $key_raw -i 10.11.4.54 -p 12345 -f ../header/512MHz_beamform_4096B.header -m 56400" # need to add more configuration
+#udp2db="../build/udp/udp2db -k $key_raw -i 10.11.4.54 -p 12345 -f ../header/512MHz_beamform_4096B.header -m 56400" # need to add more configuration
+#$echo "udp2db $udp2db\n"
+#$udp2db
+udp2db="bash ../udp/udp2db.sh"
 $echo "udp2db $udp2db\n"
 $udp2db
+
 
 sleep 1s # to wait all process finishes
 $echo "Killing dada_dbdisk"

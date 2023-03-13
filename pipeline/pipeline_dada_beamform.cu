@@ -260,7 +260,6 @@ int main(int argc, char *argv[]){
   
   // 读取输入ring buffer header中的参数
   double mjd_start = dada_header.mjd_start;
-  
   int npkt = dada_header.npkt;
   int Elements = dada_header.nelement;
   int Beams = dada_header.nbeam;

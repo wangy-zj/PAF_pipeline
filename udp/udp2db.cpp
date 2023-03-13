@@ -5,144 +5,127 @@
 #include <getopt.h>
 #include <assert.h>
 #include <string.h>
+
 #include <sys/time.h>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <time.h>
 
-#include "../include/udp.h"
-#include "../include/dada_header.h"
+#include "udp.h"
 
-// ./udp2db -i 10.17.4.2 -p 12345 -f /data/den15c/.udp-pipeline/header/512MHz_1ant1pol.header -k a000 -m 56400
-
-const struct timeval tout = {0, 0};
-
-int capture(receiver_t conf);
-
-void usage(){
-  fprintf(stdout,
-	  "udp2db - A simple program to receive UDP packet\n"
-	  "\n"
-	  "Usage:\tudp2db [options]\n"
-	  " -ip/-i        <string> Source IP address\n"
-	  " -port/-p      <int>    Source port number\n"
-	  " -fname/-f     <string> DADA header file name\n"
-	  " -mjd_start/-m <double> Start MJD\n"
-	  " -key/-k       <key>    Hexadecimal shared memory key of PSRDADA ring buffer for data capture \n"
-	  " -help/-h               Show help\n"
-	  );
-}
+//#define DEBUG
 
 int main(int argc, char *argv[]){
-  receiver_t conf = {0};
+
+  signal(SIGINT, catch_int);
+
+  char fname[STR_BUFLEN] = {0};
+  double freq = 1400.0;
+  int nblock  = 100;
+  int nsecond = 10;
+  key_t key = 0x0000a000;
+  
+  sprintf(fname, "../../header/paf_test.header");
   
   struct option options[] = {
-			     {"ip",        required_argument, 0, 'i'},
-			     {"port",      required_argument, 0, 'p'},
-			     {"fname",     required_argument, 0, 'f'},
-			     {"mjd_start", required_argument, 0, 'm'},
-			     {"key",       required_argument, 0, 'k'},
-			     {"help",      no_argument,       0, 'h'}, 
-			     {0,           0, 0, 0}
+    {"fname",   required_argument, 0, 'f'},
+    {"freq",    required_argument, 0, 'F'},
+    {"nblock",  required_argument, 0, 'n'},
+    {"nsecond", required_argument, 0, 'N'},
+    {"key",     required_argument, 0, 'k'},
+    {"help",    no_argument,       0, 'h'}, 
+    {0,         0, 0, 0}
   };
   
   /* parse command line arguments */
   while (1) {
     int ss;
-    int opt=getopt_long_only(argc, argv, "i:p:m:f:k:h", 
+    int opt=getopt_long_only(argc, argv, "f:F:n:N:k:h", 
 			     options, NULL);
     
     if (opt==EOF)
       break;
 
     switch (opt) {
-      
-    case 'i':
-      ss = sscanf(optarg, "%s", conf.ip);
-      if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR:\tCould not parse conf.ip from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	
-	exit(EXIT_FAILURE);
-      }
-      break;
-    
-    case 'p':
-      ss = sscanf(optarg, "%d", &conf.port);
-      if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR:\tCould not parse conf.port from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	
-	exit(EXIT_FAILURE);
-      }
-      break;
-      
+            
     case 'f':
-      ss = sscanf(optarg, "%s", conf.fname);
+      ss = sscanf(optarg, "%s", fname);
       if (ss!=1){
-	fprintf(stderr, "UDP2DB_ERROR:\tCould not parse DADA header file name from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+	      fprintf(stderr, "UDP2DB_ERROR: Could not parse DADA header file name from %s, \n", optarg);
+	      fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
 	
-	exit(EXIT_FAILURE);
+	      exit(EXIT_FAILURE);
       }
-    break;
+      break;
 
-    case 'm':
-      ss = sscanf(optarg, "%lf", &conf.mjd_start);
+    case 'F':
+      ss = sscanf(optarg, "%lf", &freq);
       if (ss!=1){
-	fprintf(stderr, "UDP2DB_ERROR:\tCould not parse mjd_start from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+	      fprintf(stderr, "UDP2DB_ERROR: Could not parse freq from %s, \n", optarg);
+	      fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
 	
-	exit(EXIT_FAILURE);
+	      exit(EXIT_FAILURE);
       }
-    break;
+      break;
+
+    case 'n':
+      ss = sscanf(optarg, "%d", &nblock);
+      if (ss!=1){
+	      fprintf(stderr, "UDP2DB_ERROR: Could not parse nblock from %s, \n", optarg);
+	      fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+	
+	      exit(EXIT_FAILURE);
+      }
+      break;
+
+    case 'N':
+      ss = sscanf(optarg, "%d", &nsecond);
+      if (ss!=1){
+	      fprintf(stderr, "UDP2DB_ERROR: Could not parse nsecond from %s, \n", optarg);
+	      fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+	
+	      exit(EXIT_FAILURE);
+      }
+      break;
 
     case 'k':
-      ss = sscanf(optarg, "%x", &conf.key);
+      ss = sscanf(optarg, "%x", &key);
       if(ss != 1) {
-	fprintf(stderr, "UDP2DB_ERROR:\tCould not parse key from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	usage();
-	
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "UDP2DB_ERROR: Could not parse key from %s, \n", optarg);
+        fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);	
+        exit(EXIT_FAILURE);
       }
       break;
       
     case 'h':
-      usage();
+      fprintf(stdout,
+	      "udp2db - A program to receive UDP packets and write data into ring buffer blocks\n"
+	      "\n"
+	      "Usage: udp2db [options]\n"
+	      " -fname/-f   <string> DADA header template file name, [default %s]\n"
+	      " -freq/-F    <double> Center frequency in MHz, [default %.6f MHz]\n"
+	      " -nblock/-n  <int>    Report traffic status every these number of blocks, [default %d]\n"
+	      " -nsecond/-N <int>    Number of seconds data to each DADA file, [default %d]\n"
+	      " -key/-k     <key>    Hexadecimal shared memory key of PSRDADA ring buffer to write data, [default %x] \n"
+	      " -help/-h             Show help\n",
+	      fname, freq, nblock, nsecond, key);
       exit(EXIT_FAILURE);
     }
   }
   
   /* Print out command line options */
-  fprintf(stdout, "UDP2DB_INFO:\tDADA header file name is %s\n", conf.fname);
-  fprintf(stdout, "UDP2DB_INFO:\tmjd_start is %f\n", conf.mjd_start);
-  fprintf(stdout, "UDP2DB_INFO:\tkey is %x\n", conf.key);
-  
-  /* Read in DADA header file and get more required configurations */
-  read_dada_header_from_file(conf.fname, &conf.dada_header);
-  fprintf(stdout, "UDP2DB_INFO:\tDone with dada header configuration\n");
-
-  /* Now do real thing */
-  capture(conf);
-  
-  return EXIT_SUCCESS;
-}
-
-int capture(receiver_t conf){
-  key_t key = conf.key;
-  char *ip = conf.ip;
-  int port = conf.port;
-  double tsamp  = conf.dada_header.pkt_tsamp;
+  fprintf(stdout, "UDP2DB_INFO: DADA header file name is %s\n", fname);
+  fprintf(stdout, "UDP2DB_INFO: nblock is %d\n", nblock);
+  fprintf(stdout, "UDP2DB_INFO: nsecond is %d\n", nsecond);
+  fprintf(stdout, "UDP2DB_INFO: key is %x\n", key);
   
   /* Create socket and set it up */
-  int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP); // domain, type, protocol
-
-  // TIMEOUT HERE MAYBE SENSITIVITY  
+  int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tout, sizeof(tout))){
-    fprintf(stderr, "UDP2DB_ERROR:\tCould not setup RECVTIMEO to %s_%d, "
+    fprintf(stderr, "UDP2DB_ERROR: Could not setup RECVTIMEO to %s_%d, "
   	    "which happens at \"%s\", line [%d], has to abort.\n",
-  	    ip, port, __FILE__, __LINE__);
+  	    IP_RECV, PORT_RECV, __FILE__, __LINE__);
     
     close(sock);
     
@@ -150,9 +133,9 @@ int capture(receiver_t conf){
   }
 
   if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse))){
-    fprintf(stderr, "UDP2DB_ERROR:\tCould not enable REUSEADDR to %s_%d, "
+    fprintf(stderr, "UDP2DB_ERROR: Could not enable REUSEADDR to %s_%d, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    ip, port, __FILE__, __LINE__);
+	    IP_RECV, PORT_RECV, __FILE__, __LINE__);
     
     close(sock);
 
@@ -160,9 +143,9 @@ int capture(receiver_t conf){
   }
 
   if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &window_bytes, sizeof(window_bytes))) {
-    fprintf(stderr, "UDP2DB_ERROR:\tCould not set socket RCVBUF to %s_%d, "
+    fprintf(stderr, "UDP2DB_ERROR: Could not set socket RCVBUF to %s_%d, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    ip, port, __FILE__, __LINE__);
+	    IP_RECV, PORT_RECV, __FILE__, __LINE__);
     
     close(sock);
 
@@ -172,11 +155,11 @@ int capture(receiver_t conf){
   struct sockaddr_in sa = {0};
   memset(&sa, 0x00, sizeof(sa));
   sa.sin_family      = AF_INET;
-  sa.sin_port        = htons(port);
-  sa.sin_addr.s_addr = inet_addr(ip);
+  sa.sin_port        = htons(PORT_RECV);
+  sa.sin_addr.s_addr = inet_addr(IP_RECV);
   
   if (bind(sock, (struct sockaddr *)&sa, sizeof(sa))){
-    fprintf(stderr, "UDP2DB_ERROR:\tCan not bind to %s_%d, "
+    fprintf(stderr, "UDP2DB_ERROR: Can not bind to %s_%d, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
 	    inet_ntoa(sa.sin_addr), ntohs(sa.sin_port), __FILE__, __LINE__);
     
@@ -192,36 +175,66 @@ int capture(receiver_t conf){
   // To get the first packet of the while test
   // this is supposed to happen after the first start command is issued
   if (recvfrom(sock, (void *)dbuf, PKTSZ, 0, (struct sockaddr *)&fromsa, &fromlen) == -1){
-    fprintf(stderr, "UDP2DB_ERROR:\tCan not receive data from %s_%d, "
+    fprintf(stderr, "UDP2DB_ERROR: Can not receive data from %s_%d, "
 	    "which happens at \"%s\", line [%d]\n", 
 	    inet_ntoa(sa.sin_addr), ntohs(sa.sin_port),
 	    __FILE__, __LINE__);
 
     exit(EXIT_FAILURE);
   } // if
-
+  
   packet_header_t *packet_header = (packet_header_t *)dbuf;
-  uint64_t counter = packet_header->counter;
-
+  // this will discard the first time stamp
+  // we need it when there is multiple data streams to make traffic report looks better
+  uint64_t counter = packet_header->counter + 1; 
+  fprintf(stdout, "UDP2DB_INFO: counter is %" PRIu64 "\n", counter);
+  
   /***************************
-   // get mjd_start
-   // this may not be precise enough
-   **************************/
-  double mjd_start = conf.mjd_start + counter*tsamp/(1E6*SECDAY);
+  assume that: 
+  1. mjd is a integer number
+  2. counter defines offset from mjd 
+  **************************/
+  time_t tmi;
+  time(&tmi);
+  struct tm* utc = gmtime(&tmi);
+  int year = utc->tm_year + 1900;
+  int mon  = utc->tm_mon + 1;
+  int mday = utc->tm_mday;
+  uint64_t mjd = gregorian_calendar_to_mjd(year, mon, mday);
+
+  fprintf(stdout, "UDP2DB_INFO: year is %d\n", year);
+  fprintf(stdout, "UDP2DB_INFO: mon is  %d\n", mon);
+  fprintf(stdout, "UDP2DB_INFO: mday is %d\n", mday);
+  fprintf(stdout, "UDP2DB_INFO: mjd is %" PRIu64 "\n", mjd);
+  
+  double timestamp     = (double)counter*PKT_DURATION; // current time stamp in microseconds from mjd
+  double microseconds  = fmod(timestamp, 1.0E6); // fraction seconds in microseconds
+  uint64_t picoseconds = microseconds*1000; // microseconds to picoseconds
+  
+  double seconds   = 1.0E-6*(timestamp-microseconds); // minus fraction seconds
+  double mjd_start = mjd + seconds/(double)SECDAY; //
+
+  fprintf(stdout, "UDP2DB_INFO: PKT_DURATION is %E microsecond\n", PKT_DURATION);
+  fprintf(stdout, "UDP2DB_INFO: timestamp is %E microsecond\n", timestamp);
+  fprintf(stdout, "UDP2DB_INFO: fractional seconds is %.3f microsecond\n", microseconds);
+  fprintf(stdout, "UDP2DB_INFO: picoseconds is %" PRIu64 "\n", picoseconds);
+  fprintf(stdout, "UDP2DB_INFO: integer seconds %.0f seconds\n", seconds);
+  fprintf(stdout, "UDP2DB_INFO: mjd_start is %.15f \n", mjd_start);
   
   /* Setup DADA ring buffer */
   dada_hdu_t *hdu = dada_hdu_create(NULL);
   dada_hdu_set_key(hdu, key);
   if(dada_hdu_connect(hdu) < 0){ 
-    fprintf(stderr, "UDP2DB_ERROR:\tCan not connect to hdu, \n");
-    fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n", __FILE__, __LINE__);
+    fprintf(stderr, "UDP2DB_ERROR: Can not connect to HDU, \n"
+	    "which happens at \"%s\", line [%d], has to abort.\n",
+	    __FILE__, __LINE__);
     
     exit(EXIT_FAILURE);
   }
   
   // Now we can lock HDU for write and get data and header block
   if(dada_hdu_lock_write(hdu) < 0) {
-    fprintf(stderr, "UDP2DB_ERROR:\tError locking HDU, "
+    fprintf(stderr, "UDP2DB_ERROR: Error locking HDU, \n"
 	    "which happens at \"%s\", line [%d], has to abort.\n",
 	    __FILE__, __LINE__);
     
@@ -232,66 +245,127 @@ int capture(receiver_t conf){
   ipcbuf_t *data_block   = (ipcbuf_t *)(hdu->data_block);
   ipcbuf_t *header_block = (ipcbuf_t *)(hdu->header_block);
 
-  /*
-    register dada header, we should get more information in real case 
-    for now just copy it from header template file */
-  char *hdrbuf = ipcbuf_get_next_write(header_block);
-  
-  if(fileread(conf.fname, hdrbuf, DADA_DEFAULT_HEADER_SIZE) < 0){
-    fprintf(stderr, "UDP2DB_ERROR:\tError reading header file, "
-	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    __FILE__, __LINE__);
-
-    exit(EXIT_FAILURE);
-  }
-
-  // setup mjd_start for reference time 
-  if (ascii_header_set(hdrbuf, "MJD_START", "%f", mjd_start) < 0)  {
-    fprintf(stderr, "UDP2DB_ERROR: Error setting MJD_START, "
-            "which happens at %s, line [%d].\n",
-            __FILE__, __LINE__);
-    exit(EXIT_FAILURE);
-  }
-  
-  // donot set header parameters anymore
-  if(ipcbuf_mark_filled(header_block, DADA_DEFAULT_HEADER_SIZE) < 0){
-    fprintf(stderr, "UDP2DB_ERROR:\tError header_fill, "
-	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    __FILE__, __LINE__);
-
-    exit(EXIT_FAILURE);
-  }
-  // Create buffer to hold data for one block
+  // check to see if we can fit integer number of packets of all streams into a single ring buffer block
   uint64_t bufsz = ipcbuf_get_bufsz(data_block);
-  int npacket_perblock = (int)bufsz/(double)PKT_DTSZ;
-  if(bufsz%(PKT_DTSZ) != 0){
-    fprintf(stderr, "UDP2DB_ERROR:\tbad choice of ring buffer block size, "
+  if(bufsz%(PKT_DTSZ*NSTREAM_UDP) != 0){
+    fprintf(stderr, "UDP2DB_ERROR: bad choice of ring buffer block size, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
 	    __FILE__, __LINE__);
     
     close(sock);
     exit(EXIT_FAILURE);
   }
-  char *databuf = ipcbuf_get_next_write(data_block); // Open a ring buffer block
+  int npacket = bufsz/(PKT_DTSZ*NSTREAM_UDP); //单个port发送包的数目
+  fprintf(stdout, "UDP2DB_INFO: bufsz is % " PRIu64"\n", bufsz);
+  fprintf(stdout, "UDP2DB_INFO: npacket is % " PRIu64"\n", npacket);
+
+  uint64_t npacket_expected = npacket*NSTREAM_UDP*nblock; // number of packet expected of each report cycle
+  double block_duration  = 1.0E-6*npacket*PKT_DURATION;   //单个block的数据时间
+  double report_interval = nblock*block_duration;         //报告间隔，每隔nblock报告一次
+  fprintf(stdout, "UDP2DB_INFO: npacket_expected is % " PRIu64"\n", npacket_expected);
+  fprintf(stdout, "UDP2DB_INFO: block_duration is %.6f seconds\n", block_duration);
+  fprintf(stdout, "UDP2DB_INFO: report_interval is %.6f seconds\n", report_interval);
+
+  int nblock_expected   = (int)(nsecond/block_duration);    //给定时间内预期接收block数目
+  double nsecond_record = nblock_expected*block_duration;   //实际接收到预期block所用的时间
+  fprintf(stdout, "UDP2DB_INFO: nblock_expected is %d\n", nblock_expected);
+  fprintf(stdout, "UDP2DB_INFO: asked for %d seconds data, will record %.6f seconds data\n", nsecond, nsecond_record);
+
+  /*
+    register dada header, we should get more information in real case 
+    for now just copy it from header template file 
+  */
+  char *hdrbuf = ipcbuf_get_next_write(header_block);
+  if(fileread(fname, hdrbuf, DADA_DEFAULT_HEADER_SIZE) < 0){
+    fprintf(stderr, "UDP2DB_ERROR: Error reading header file, "
+	    "which happens at \"%s\", line [%d], has to abort.\n",
+	    __FILE__, __LINE__);
+
+    exit(EXIT_FAILURE);
+  }
+
+  // setup mjd_start for reference time
+  // we should not use the tmi as tmi is clock time on local computer, not time stamps in data
+  // 需要从udp包计算时间，目前是直接获取计算机的当前时间 
+  char utc_start[STR_BUFLEN] = {0};
+  time_t seconds_from1970 = SECDAY*(mjd-MJD1970) + seconds;
+  strftime (utc_start, STR_BUFLEN, DADA_TIMESTR, gmtime(&seconds_from1970));
+
+  fprintf(stdout, "UDP2DB_INFO: seconds_from1970 is %d\n", seconds_from1970);
+  fprintf(stdout, "UDP2DB_INFO: utc_start is %s\n", utc_start);
+
+  // need to understand how data streams are sorted
+  // otherwise I can not make bandwidth and nchan right
+  uint64_t bytes_per_second = 1E6*PKT_DTSZ*NSTREAM_UDP/(double)PKT_DURATION;  //每秒传输的数据量
+  uint64_t file_size        = bytes_per_second*nsecond_record;                //计算实际每个file的大小
+  fprintf(stdout, "UDP2DB_INFO: bytes_per_second is %" PRIu64 "\n", bytes_per_second);
+  fprintf(stdout, "UDP2DB_INFO: file_size is %" PRIu64 "\n", file_size);
   
-  // Setup reference and previous information
-  // previous information is for traffic monitoring
-  // reference information is for block location calculation
-  int referencecounter = counter;
-  int previouscounter  = counter;
+  if (ascii_header_set(hdrbuf, "TSAMP", "%f", TSAMP) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting TSAMP, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  
+  if (ascii_header_set(hdrbuf, "FREQ", "%f", freq) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting FREQ, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  
+  if (ascii_header_set(hdrbuf, "MJD_START", "%.15f", mjd_start) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting MJD_START, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  
+  if (ascii_header_set(hdrbuf, "UTC_START", "%s", utc_start) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting UTC_START, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  
+  if (ascii_header_set(hdrbuf, "PICOSECONDS", "%" PRIu64 "", picoseconds) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting PICOSECONDS, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+  
+  if (ascii_header_set(hdrbuf, "BYTES_PER_SECOND", "%" PRIu64 "", bytes_per_second) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting BYTES_PER_SECOND, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
 
-  int64_t current_losscounter = 0;
-  uint64_t current_pktcounter = 0;
-  int64_t previous_losscounter = current_losscounter;
-  uint64_t previous_pktcounter = current_pktcounter;
- 
-  struct timeval previous_time = {0};
-  struct timeval current_time  = {0};
+  if (ascii_header_set(hdrbuf, "FILE_SIZE", "%" PRIu64 "", file_size) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting FILE_SIZE, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
 
-  gettimeofday(&current_time, NULL);
-  previous_time = current_time;
-  uint64_t reference_second = current_time.tv_sec;
-    
+  // donot set header parameters anymore
+  if(ipcbuf_mark_filled(header_block, DADA_DEFAULT_HEADER_SIZE) < 0){
+    fprintf(stderr, "UDP2DB_ERROR: Error header_fill, "
+	    "which happens at \"%s\", line [%d], has to abort.\n",
+	    __FILE__, __LINE__);
+
+    exit(EXIT_FAILURE);
+  }
+     
+  // start to receive data
+  // discard the first packet
+  int counter0 = counter;
+  int nblock_recorded = 0;
+  uint64_t npacket_recorded = 0;
+  
+  char *databuf = ipcbuf_get_next_write(data_block); // Open a ring buffer block
   while (true){    
     // receive data
     char dbuf[PKTSZ] = {0};
@@ -301,7 +375,7 @@ int capture(receiver_t conf){
     // To get the first packet of the while test
     // this is supposed to happen after the first start command is issued
     if (recvfrom(sock, (void *)dbuf, PKTSZ, 0, (struct sockaddr *)&fromsa, &fromlen) == -1){
-      fprintf(stderr, "UDP2DB_ERROR:\tCan not receive data from %s_%d, "
+      fprintf(stderr, "UDP2DB_ERROR: Can not receive data from %s_%d, "
 	      "which happens at \"%s\", line [%d]\n", 
 	      inet_ntoa(sa.sin_addr), ntohs(sa.sin_port),
 	      __FILE__, __LINE__);
@@ -310,68 +384,65 @@ int capture(receiver_t conf){
     } // if
 
     packet_header_t *packet_header = (packet_header_t *)dbuf;
-    uint64_t thiscounter = packet_header->counter;
-
+    uint64_t counter = packet_header->counter;
+    uint64_t ad      = packet_header->flag - AD0;
+    
 #ifdef DEBUG
-    fprintf(stdout, "UDP2DB_DEBUG:\tcounter is %" PRIu64 ", and from %s at \"%s\", line [%d]\n",
-    	    thiscounter, inet_ntoa(fromsa.sin_addr), __FILE__, __LINE__);
+    fprintf(stdout, "UDP2DB_DEBUG: counter is %" PRIu64 ", and from %s_%d at \"%s\", line [%d]\n",
+    	    counter, inet_ntoa(fromsa.sin_addr), ntohs(fromsa.sin_port), __FILE__, __LINE__);
 #endif
+
+    int diff_counter = counter - counter0;
+    int loc_packet   = diff_counter*NSTREAM_UDP+ad;  //包位置信息，考虑到不同ad的包
     
-    // really necessary to lock and unlock here?    
-    current_losscounter+=(thiscounter-previouscounter-1);
-    current_pktcounter++;
-    
-    //当前数据包时间减去参考时间，对包定位
-    int loc_packet = thiscounter - referencecounter;
-    
-    // WE may have multiple blocks lost ...
-    // loc_packet可能会比npacket_perblock大好几倍，循环进行block填充
-    while(loc_packet >= npacket_perblock){
+    // We only cope with packet loss within a single buffer block
+    if(diff_counter >= npacket){
       ipcbuf_mark_filled(data_block, bufsz); // Open a ring buffer block
       
-      referencecounter += npacket_perblock;
-      loc_packet -= npacket_perblock;
+      counter0   += npacket;
+      loc_packet -= (npacket*NSTREAM_UDP);
+      nblock_recorded++;
+      
+      if(nblock_recorded%nblock == 0){
+	      // now we can report traffic status
+	      int64_t npacket_lost = npacket_expected - npacket_recorded;
+	      double lost_rate     = npacket_lost/(double)npacket_expected;
+	
+	      fprintf(stdout, "UDP2DB_INFO: %d buffer block recorded\n", nblock_recorded);	
+        fprintf(stdout, "UDP2DB_INFO: time so far %15.6f seconds\n", nblock_recorded*block_duration);
+        fprintf(stdout, "UDP2DB_INFO: report interval is %.6f seconds\n", report_interval);
+        fprintf(stdout, "UDP2DB_INFO:  %" PRIu64 " packets expected\n", npacket_expected);
+        fprintf(stdout, "UDP2DB_INFO:  %" PRIu64 " packets recorded\n", npacket_recorded);
+        fprintf(stdout, "UDP2DB_INFO:  %" PRId64 " packets lost\n", npacket_lost);
+        fprintf(stdout, "UDP2DB_INFO:  packet loss rate is %.6f\n\n", lost_rate);
+	
+	      npacket_recorded=0;
+      }
+      //接收到所有的包之后，关闭传输
+      if(nblock_recorded == nblock_expected){
+
+	      fprintf(stdout, "UDP2DB_INFO: got %d blocks, expected %d blocks, exit\n", nblock_recorded, nblock_expected);
+	      close(sock);
+	      if(dada_hdu_unlock_write(hdu) < 0) {
+	        fprintf(stderr, "UDP2DB_ERROR:\tunlock hdu write failed, "
+		        "which happens at \"%s\", line [%d], has to abort.\n",
+		        __FILE__, __LINE__);
+	        exit(EXIT_FAILURE);
+	      } // if
+
+	      dada_hdu_destroy(hdu); // it has disconnect
+	
+	      return EXIT_SUCCESS;
+      }
+      
       databuf = ipcbuf_get_next_write(data_block); // Open a ring buffer block
     }
     
-    uint64_t offset = loc_packet*PKT_DTSZ;
-    memcpy(databuf+offset, dbuf+PKT_HDRSZ, PKT_DTSZ);
-    
-    previouscounter = thiscounter;
-
-    // Check traffic status
-    gettimeofday(&current_time, NULL);
-
-    // Report traffic status when we at report time interval
-    if(((current_time.tv_sec * 1000000 + current_time.tv_usec) -
-	(previous_time.tv_sec * 1000000 + previous_time.tv_usec)) > report_period_microsecond){
-
-      uint64_t diff_pktcounter = current_pktcounter - previous_pktcounter;
-      int64_t diff_losscounter = current_losscounter - previous_losscounter;
-
-      // Figure out time so far
-      uint64_t diff_second = current_time.tv_sec - reference_second;
-      char diff_dhms[STR_BUFLEN] = {0};
-      seconds2dhms(diff_second, diff_dhms);
-      
-      // Only print out information when there is data in the last monitor period
-      fprintf(stdout, "UDP2DB_INFO:\ttime so far %s, in the last %3.1f seconds data rate is %6.3f Gbps, \n",
-      	      diff_dhms, report_period_second,
-      	      diff_pktcounter*PKT_DTSZ*8/(report_period_second*bits2gbits));
-      
-      fprintf(stdout, "UDP2DB_INFO:\ttime so far %s, %" PRIu64 " packet received, %" PRId64 " packet lost, packet loss rate is %3.1E\n",
-      	      diff_dhms, diff_pktcounter, diff_losscounter, diff_losscounter/(double)(diff_pktcounter+diff_losscounter));
-      
-      fprintf(stdout, "UDP2DB_INFO:\ttime so far %s, %" PRIu64 " packet received, %" PRId64 " packet lost, packet loss rate is %3.1E so far\n\n",
-      	      diff_dhms, current_pktcounter, current_losscounter, current_losscounter/(double)(current_pktcounter+current_losscounter));
-      
-      // Update counter and timer
-      previous_pktcounter  = current_pktcounter;
-      previous_losscounter = current_losscounter;
-      previous_time = current_time;
+    if(diff_counter >= 0){
+      // here we discard late packets
+      uint64_t offset = loc_packet*PKT_DTSZ;
+      memcpy(databuf+offset, dbuf+PKT_HDRSZ, PKT_DTSZ);
+      npacket_recorded++;
     }
   }
-  close(sock);
-
-  return EXIT_SUCCESS;
 }

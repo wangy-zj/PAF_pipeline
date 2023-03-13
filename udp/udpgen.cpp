@@ -10,225 +10,207 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "../include/udp.h"
+#include "udp.h"
 
-const struct timeval tout = {0, 0}; ///< time out for sending
-const uint32_t nsleep_dead = 45;  ///< Estimated dead time of sleep 
-
-int generate(generate_t conf);
-
-void usage(){
-  fprintf(stdout,
-	  "udpgen - A simple program to generate UDP packets\n"
-	  "\n"
-	  "Usage:\tudpgen [options]\n"
-	  " -ip_src/-i        <string> Source IP address\n"
-	  " -port_src/-p      <int>    Source port number\n"
-	  " -ip_dest/-I       <string> Destination IP address\n"
-	  " -port_dest/-P     <int>    Destination port number\n"
-	  " -rate/-r          <double> Required data rate in Gbps\n"
-	  " -help/-h                   Show help\n"
-	  );
-}
-
-// ./udpgen -i 10.17.4.2 -p 12346 -I 10.17.4.2 -P 12345 -r 10
-// LD_PRELOAD=libvma.so ./udpgen -i 10.17.4.2 -p 12346 -I 10.17.4.2 -P 12345 -r 10
+// The following copied from https://stackoverflow.com/questions/41390824/%C2%B5s-precision-wait-in-c-for-linux-that-does-not-put-program-to-sleep
+# define tscmp(a, b, CMP)			\
+  (((a)->tv_sec == (b)->tv_sec) ?		\
+   ((a)->tv_nsec CMP (b)->tv_nsec) :		\
+   ((a)->tv_sec CMP (b)->tv_sec))
+# define tsadd(a, b, result)				\
+  do {							\
+    (result)->tv_sec = (a)->tv_sec + (b)->tv_sec;	\
+    (result)->tv_nsec = (a)->tv_nsec + (b)->tv_nsec;	\
+    if ((result)->tv_nsec >= 1000000000)		\
+      {							\
+	++(result)->tv_sec;				\
+	(result)->tv_nsec -= 1000000000;		\
+      }							\
+  } while (0)
+# define tssub(a, b, result)				\
+  do {							\
+    (result)->tv_sec = (a)->tv_sec - (b)->tv_sec;	\
+    (result)->tv_nsec = (a)->tv_nsec - (b)->tv_nsec;	\
+    if ((result)->tv_nsec < 0) {			\
+      --(result)->tv_sec;				\
+      (result)->tv_nsec += 1000000000;			\
+    }							\
+  } while (0)
 
 int main(int argc, char *argv[]){
+  signal(SIGINT, catch_int);
+
+  int nsecond = 10;
+  
   struct option options[] = {
-			     {"ip_src",     required_argument, 0, 'i'},
-			     {"port_src",   required_argument, 0, 'p'},
-			     {"ip_dest",    required_argument, 0, 'I'},
-			     {"port_dest",  required_argument, 0, 'P'},
-			     {"rate",       required_argument, 0, 'r'},
-			     {"help",       no_argument, 0, 'h'}, 
-			     {0,            0, 0, 0}
+    {"nsecond", required_argument, 0, 'n'},
+    {"help",    no_argument,       0, 'h'}, 
+    {0,         0, 0, 0}
   };
 
-  generate_t conf = {0};
-  
   /* parse command line arguments */
   while (1) {
     int ss;
-    int opt=getopt_long_only(argc, argv, "I:P:i:p:r:h", 
+    int opt=getopt_long_only(argc, argv, "n:h", 
 			     options, NULL);
     
     if (opt==EOF)
       break;
 
     switch (opt) {
-    case 'i':
-      ss = sscanf(optarg, "%s", conf.ip_src);
+
+    case 'n':
+      ss = sscanf(optarg, "%d", &nsecond);
       if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR:\tCould not parse conf.ip_src from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	
-	exit(EXIT_FAILURE);
-      }
-      break;
-    
-    case 'p':
-      ss = sscanf(optarg, "%d", &conf.port_src);
-      if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR:\tCould not parse conf.port_src from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	
-	exit(EXIT_FAILURE);
-      }
-      break;
-      
-    case 'I':
-      ss = sscanf(optarg, "%s", conf.ip_dest);
-      if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR:\tCould not parse conf.ip_dest from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	
-	exit(EXIT_FAILURE);
-      }
-      break;
-    
-    case 'P':
-      ss = sscanf(optarg, "%d", &conf.port_dest);
-      if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR:\tCould not parse conf.port_dest from %s, \n", optarg);
+	fprintf(stderr, "UDPGEN_ERROR: Could not parse nsecond from %s, \n", optarg);
 	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
 	
 	exit(EXIT_FAILURE);
       }
       break;
 
-    case 'r':
-      ss = sscanf(optarg, "%lf", &conf.rate);
-      if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR:\tCould not parse conf.rate from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	
-	exit(EXIT_FAILURE);
-      }
-      break;
-          
+
     case 'h':
-      usage();
+      fprintf(stdout,
+	      "udpgen - A program to generate UDP packets\n"
+	      "\n"
+	      "Usage: udpgen [options]\n"
+	      " -nsecond/-n <int> Require to send number of seconds data, [default %d]\n"
+	      " -help/-h          Show help\n",
+	      nsecond);
       exit(EXIT_FAILURE);
     }
   }
   
-  /* Print out command line options */
-  fprintf(stdout, "UDPGEN_INFO:\tsource is %s:%d\n",      conf.ip_src, conf.port_src);
-  fprintf(stdout, "UDPGEN_INFO:\tdestination is %s:%d\n", conf.ip_dest, conf.port_dest);
-  fprintf(stdout, "UDPGEN_INFO:\trequired bandwidth is %f Gbps\n", conf.rate);
+  fprintf(stdout, "UDPGEN_INFO: Require to send %d seconds data\n", nsecond);
 
-  generate(conf);
-  
-  return EXIT_SUCCESS;
-}
+  int socks[NSTREAM_UDP] = {0};
+  for(int i = 0; i < NSTREAM_UDP; i++) {    
+    /* Setup source socket */
+    socks[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (setsockopt(socks[i], SOL_SOCKET, SO_SNDTIMEO, (const char*)&tout, sizeof(tout))){
+      fprintf(stderr, "UDPGEN_ERROR: Could not setup RECVTIMEO to %s_%d, "
+	      "which happens at \"%s\", line [%d], has to abort.\n",
+	      IP_SEND, PORT_SEND, __FILE__, __LINE__);
+      
+      close(socks[i]);
+      exit(EXIT_FAILURE);
+    }
 
-int generate(generate_t conf){
-  
-  /* Setup source socket */
-  int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-
-  // TIMEOUT HERE MAYBE SENSITIVITY  
-  if (setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, (const char*)&tout, sizeof(tout))){
-    fprintf(stderr, "UDPGEN_ERROR:\tCould not setup RECVTIMEO to %s_%d, "
-  	    "which happens at \"%s\", line [%d], has to abort.\n",
-  	    conf.ip_src, conf.port_src, __FILE__, __LINE__);
+    if (setsockopt(socks[i], SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse))){
+      fprintf(stderr, "UDPGEN_ERROR: Could not enable REUSEADDR to %s_%d, "
+	      "which happens at \"%s\", line [%d], has to abort.\n",
+	      IP_SEND, PORT_SEND, __FILE__, __LINE__);
     
-    close(sock);
-    exit(EXIT_FAILURE);
+      close(socks[i]);
+      exit(EXIT_FAILURE);
+    }
+
+    if (setsockopt(socks[i], SOL_SOCKET, SO_SNDBUF, &window_bytes, sizeof(window_bytes))) {
+      fprintf(stderr, "UDPGEN_ERROR: Could not set socket RCVBUF to %s_%d, "
+	      "which happens at \"%s\", line [%d], has to abort.\n",
+	      IP_SEND, PORT_SEND, __FILE__, __LINE__);
+    
+      close(socks[i]);
+      exit(EXIT_FAILURE);
+    }
+
+    
+    // source address
+    struct sockaddr_in src = {0};
+    socklen_t src_len = sizeof(struct sockaddr_in);
+    uint32_t port = PORT_SEND+i;        
+    src.sin_family      = AF_INET;
+    src.sin_port        = htons(port);
+    src.sin_addr.s_addr = inet_addr(IP_SEND);
+    
+    fprintf(stdout, "UDPGEN_INFO: required port is %d\n", port);
+    fprintf(stdout, "UDPGEN_INFO: actual port is %d\n", ntohs(src.sin_port));    
+        
+    if (bind(socks[i], (struct sockaddr *)&src, src_len)){
+      fprintf(stderr, "UDPGEN_ERROR: Can not bind to %s_%d, "
+	      "which happens at \"%s\", line [%d], has to abort.\n",
+	      inet_ntoa(src.sin_addr), ntohs(src.sin_port), __FILE__, __LINE__);
+    
+      close(socks[i]);
+      exit(EXIT_FAILURE);
+    }
+    
+    fprintf(stdout, "UDPGEN_INFO: bind to %s_%d\n",
+	  inet_ntoa(src.sin_addr), ntohs(src.sin_port));
   }
 
-  if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse))){
-    fprintf(stderr, "UDPGEN_ERROR:\tCould not enable REUSEADDR to %s_%d, "
-	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    conf.ip_src, conf.port_src, __FILE__, __LINE__);
-    
-    close(sock);
-    exit(EXIT_FAILURE);
-  }
-
-  if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, &window_bytes, sizeof(window_bytes))) {
-    fprintf(stderr, "UDPGEN_ERROR:\tCould not set socket RCVBUF to %s_%d, "
-	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    conf.ip_src, conf.port_src, __FILE__, __LINE__);
-    
-    close(sock);
-    exit(EXIT_FAILURE);
-  }
-
-  struct sockaddr_in src_addr = {0};
-  socklen_t src_addrlen = sizeof(src_addr);
-  src_addr.sin_family      = AF_INET;
-  src_addr.sin_port        = htons(conf.port_src);
-  src_addr.sin_addr.s_addr = inet_addr(conf.ip_src);
-  //src_addr.sin_addr.s_addr = INADDR_ANY;
-  
-  if (bind(sock, (struct sockaddr *)&src_addr, src_addrlen)){
-    fprintf(stderr, "UDPGEN_ERROR:\tCan not bind to %s_%d, "
-	    "which happens at \"%s\", line [%d], has to abort.\n",
-	    inet_ntoa(src_addr.sin_addr), ntohs(src_addr.sin_port), __FILE__, __LINE__);
-    
-    close(sock);
-    exit(EXIT_FAILURE);
-  }
-
-  /* Get packet and send it */
-  char buf[PKTSZ] = {'0'};
-  packet_header_t *packet_header = (packet_header_t *)buf;
-  packet_header->flag    = 1;
-  packet_header->counter = 0;
-  
-  struct sockaddr_in dest_addr = {0};
-  socklen_t dest_addrlen = sizeof(dest_addr);
-  dest_addr.sin_family      = AF_INET;
-  dest_addr.sin_port        = htons(conf.port_dest);
-  dest_addr.sin_addr.s_addr = inet_addr(conf.ip_dest);
+  // dest address 
+  struct sockaddr_in dest = {0};
+  socklen_t dest_len = sizeof(dest);
+  dest.sin_family      = AF_INET;
+  dest.sin_port        = htons(PORT_RECV);
+  dest.sin_addr.s_addr = inet_addr(IP_RECV);
 
   struct timespec now   = {0};
   struct timespec then  = {0};
   struct timespec start = {0};
-  uint32_t nsleep = (uint32_t)(1.E9*PKT_DTSZ*8/(bits2gbits*conf.rate)) - nsleep_dead;
-  
-  fprintf(stdout, "UDPGEN_INFO:\tnsleep is %d\n", nsleep);
-  
+  uint32_t nsleep = 1000*PKT_DURATION - nsleep_dead;  
   struct timespec sleep = {0, nsleep};
+  fprintf(stdout, "UDPGEN_INFO: nsleep is %d\n", nsleep);
 
+  /* Get packet and send it */
+  char buf[PKTSZ] = {'0'};
+  packet_header_t *packet_header = (packet_header_t *)buf;
+  //packet_header->flag = 1;
+  
+  // setup counter with real time stamp  
+  time_t tmi;
+  time(&tmi);
+  struct tm* utc = gmtime(&tmi);
+  int hour = utc->tm_hour;
+  int min  = utc->tm_min;
+  int sec  = utc->tm_sec;
+  double microsecond_offset = 1E6*(hour*3600+min*60+sec); // can only be as accurate as 1 second
+  packet_header->counter = (uint64_t)(microsecond_offset/(double)PKT_DURATION);
+  fprintf(stdout, "UDPGEN_INFO: microsecond_offset is %.6f microseconds\n", microsecond_offset);
+  fprintf(stdout, "UDPGEN_INFO: First counter is %" PRIu64 "\n", packet_header->counter);
+  
+  uint64_t npacket = 1E6*nsecond/(double)PKT_DURATION;
+  double nsecond_send = 1.0E-6*npacket*PKT_DURATION;
+  fprintf(stdout, "UDPGEN_INFO: Will send % " PRIu64 " packets for each stream\n", npacket);
+  fprintf(stdout, "UDPGEN_INFO: Will send %.6f seconds data for each stream\n", nsecond_send);
+
+  uint64_t npacket_report = 1E6*nsecond_report/(double)PKT_DURATION;
+  double time_report      = 1.0E-6*npacket_report*PKT_DURATION;
+  uint64_t bytes_report   = PKTSZ*NSTREAM_UDP*npacket_report;
+  fprintf(stdout, "UDPGEN_INFO: Will report traffic every % " PRIu64 " packets\n", npacket_report);
+  fprintf(stdout, "UDPGEN_INFO: Will report traffic every % " PRIu64 " bytes\n", bytes_report);
+  fprintf(stdout, "UDPGEN_INFO: Required to report traffic every %.6f seconds\n\n", time_report);
+
+  int npacket_sent = 0;
   struct timeval previous_time = {0};
   struct timeval current_time  = {0};
-
-  gettimeofday(&current_time, NULL);
-  previous_time = current_time;
-  uint64_t reference_second = current_time.tv_sec;
-
-  uint64_t counter = 0;
-  while(true){
+  
+  gettimeofday(&previous_time, NULL);
+  while(npacket_sent < npacket){
     // Start time
     clock_gettime( CLOCK_REALTIME, &start);    
-    tsadd( &start, &sleep, &then ); // then = start + sleep
+    tsadd( &start, &sleep, &then );
 
-    sendto(sock, buf, PKTSZ, 0, (struct sockaddr *)&dest_addr, dest_addrlen);
-
+    for(int i = 0; i < NSTREAM_UDP; i++){
+      packet_header->flag = AD0+i;
+      sendto(socks[i], buf, PKTSZ, 0, (struct sockaddr *)&dest, dest_len);
+    }
     packet_header->counter++;
-    counter++;
-    
-    // Check traffic status
-    gettimeofday(&current_time, NULL);
-    
-    // Report traffic status when we at report time interval
-    if(((current_time.tv_sec * 1000000 + current_time.tv_usec) -
-	(previous_time.tv_sec * 1000000 + previous_time.tv_usec)) > report_period_microsecond){
-      
-      uint64_t diff_second = current_time.tv_sec - reference_second;
-      char diff_dhms[STR_BUFLEN] = {0};
-      seconds2dhms(diff_second, diff_dhms);
+    npacket_sent++;
 
-      fprintf(stdout, "UDPGEN_INFO:\ttime so far %s, data rate in the last %3.1f seconds is %6.3f Gbps, "
-	      "%6" PRIu64 " packet generated\n",
-	      diff_dhms, report_period_second, counter*PKT_DTSZ*8/(report_period_second*bits2gbits),
-	      counter);
-            
-      counter = 0;
-      previous_time = current_time;
+    if(npacket_sent%npacket_report == 0){
+      gettimeofday(&current_time, NULL);      
+      double elapsed_time = (current_time.tv_sec - previous_time.tv_sec) +
+	    (current_time.tv_usec - previous_time.tv_usec)/1.0E6L;
+      double data_rate = 1.0E-6*bytes_report/elapsed_time;
+      
+      fprintf(stdout, "UDPGEN_INFO: Required to report traffic every %.6f seconds\n", time_report);
+      fprintf(stdout, "UDPGEN_INFO: Report traffic after %.6f seconds\n", elapsed_time);
+      fprintf(stdout, "UDPGEN_INFO: Data rate is %.6f Mbps\n\n", data_rate);
+      
+      gettimeofday(&previous_time, NULL);      
     }
     
     // Busy loop until we get required delay
@@ -236,13 +218,12 @@ int generate(generate_t conf){
     while ( tscmp( &now, &then, < )  ){
       clock_gettime( CLOCK_REALTIME, &now);
     }
-
-#ifdef TIMEIT
-    double elapsed_time = (now.tv_sec - start.tv_sec) + (now.tv_nsec - start.tv_nsec)/1.0E9L;
-    fprintf(stdout, "UDPGEN_INFO:\telapsed_time for a single sendto loop is %E nanosecond\n", 1.0E9*elapsed_time);
-#endif
   }
 
+  // close sockets
+  for(int i = 0; i < NSTREAM_UDP; i++){
+    close(socks[i]);
+  }
+  
   return EXIT_SUCCESS;
 }
-
