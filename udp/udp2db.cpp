@@ -24,6 +24,8 @@ int main(int argc, char *argv[]){
   double freq = 1400.0;
   int nblock  = 100;
   int nsecond = 10;
+  int nblocksave = 2;
+
   key_t key = 0x0000a000;
   
   sprintf(fname, "../../header/paf_test.header");
@@ -33,6 +35,7 @@ int main(int argc, char *argv[]){
     {"freq",    required_argument, 0, 'F'},
     {"nblock",  required_argument, 0, 'n'},
     {"nsecond", required_argument, 0, 'N'},
+    {"nblcoksave",required_argument, 0, 's'},
     {"key",     required_argument, 0, 'k'},
     {"help",    no_argument,       0, 'h'}, 
     {0,         0, 0, 0}
@@ -41,7 +44,7 @@ int main(int argc, char *argv[]){
   /* parse command line arguments */
   while (1) {
     int ss;
-    int opt=getopt_long_only(argc, argv, "f:F:n:N:k:h", 
+    int opt=getopt_long_only(argc, argv, "f:F:n:N:s:k:h", 
 			     options, NULL);
     
     if (opt==EOF)
@@ -89,6 +92,16 @@ int main(int argc, char *argv[]){
       }
       break;
 
+    case 's':
+      ss = sscanf(optarg, "%d", &nblocksave);
+      if (ss!=1){
+	      fprintf(stderr, "UDP2DB_ERROR: Could not parse nblocksave from %s, \n", optarg);
+	      fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+	
+	      exit(EXIT_FAILURE);
+      }
+      break;
+
     case 'k':
       ss = sscanf(optarg, "%x", &key);
       if(ss != 1) {
@@ -106,22 +119,26 @@ int main(int argc, char *argv[]){
 	      " -fname/-f   <string> DADA header template file name, [default %s]\n"
 	      " -freq/-F    <double> Center frequency in MHz, [default %.6f MHz]\n"
 	      " -nblock/-n  <int>    Report traffic status every these number of blocks, [default %d]\n"
-	      " -nsecond/-N <int>    Number of seconds data to each DADA file, [default %d]\n"
+	      " -nsecond/-N <int>    Number of seconds data to receive, [default %d]\n"
+        " -nblcoksave/-s <int> Number of blocks data to each dada file, [default %d]\n"
 	      " -key/-k     <key>    Hexadecimal shared memory key of PSRDADA ring buffer to write data, [default %x] \n"
 	      " -help/-h             Show help\n",
-	      fname, freq, nblock, nsecond, key);
+	      fname, freq, nblock, nsecond, nblocksave, key);
       exit(EXIT_FAILURE);
     }
   }
   
   /* Print out command line options */
   fprintf(stdout, "UDP2DB_INFO: DADA header file name is %s\n", fname);
-  fprintf(stdout, "UDP2DB_INFO: nblock is %d\n", nblock);
-  fprintf(stdout, "UDP2DB_INFO: nsecond is %d\n", nsecond);
+  fprintf(stdout, "UDP2DB_INFO: Report traffic status every %d nblock\n", nblock);
+  fprintf(stdout, "UDP2DB_INFO: Number of seconds data to receive is %d\n", nsecond);
+  fprintf(stdout, "Number of blocks for each dada file is %d\n", nblocksave);
   fprintf(stdout, "UDP2DB_INFO: key is %x\n", key);
   
-  /* Create socket and set it up */
+  /* 1. Create socket and set it up */
   int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  /* 2. Set the socket options */
+  /* set the receive timeout value */
   if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tout, sizeof(tout))){
     fprintf(stderr, "UDP2DB_ERROR: Could not setup RECVTIMEO to %s_%d, "
   	    "which happens at \"%s\", line [%d], has to abort.\n",
@@ -132,6 +149,7 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE);
   }
 
+  /* set the address reuse value */
   if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse))){
     fprintf(stderr, "UDP2DB_ERROR: Could not enable REUSEADDR to %s_%d, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
@@ -142,6 +160,7 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE);
   }
 
+  /* set the receive buffer value */
   if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, &window_bytes, sizeof(window_bytes))) {
     fprintf(stderr, "UDP2DB_ERROR: Could not set socket RCVBUF to %s_%d, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
@@ -256,13 +275,13 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE);
   }
   int npacket = bufsz/(PKT_DTSZ*NSTREAM_UDP); //单个port发送包的数目
-  fprintf(stdout, "UDP2DB_INFO: bufsz is % " PRIu64"\n", bufsz);
-  fprintf(stdout, "UDP2DB_INFO: npacket is % " PRIu64"\n", npacket);
+  fprintf(stdout, "UDP2DB_INFO: bufsz is %" PRIu64 "\n", bufsz);
+  fprintf(stdout, "UDP2DB_INFO: npacket is %d\n", npacket);
 
   uint64_t npacket_expected = npacket*NSTREAM_UDP*nblock; // number of packet expected of each report cycle
   double block_duration  = 1.0E-6*npacket*PKT_DURATION;   //单个block的数据时间
   double report_interval = nblock*block_duration;         //报告间隔，每隔nblock报告一次
-  fprintf(stdout, "UDP2DB_INFO: npacket_expected is % " PRIu64"\n", npacket_expected);
+  fprintf(stdout, "UDP2DB_INFO: npacket_expected is %" PRIu64 "\n", npacket_expected);
   fprintf(stdout, "UDP2DB_INFO: block_duration is %.6f seconds\n", block_duration);
   fprintf(stdout, "UDP2DB_INFO: report_interval is %.6f seconds\n", report_interval);
 
@@ -291,7 +310,7 @@ int main(int argc, char *argv[]){
   time_t seconds_from1970 = SECDAY*(mjd-MJD1970) + seconds;
   strftime (utc_start, STR_BUFLEN, DADA_TIMESTR, gmtime(&seconds_from1970));
 
-  fprintf(stdout, "UDP2DB_INFO: seconds_from1970 is %d\n", seconds_from1970);
+  fprintf(stdout, "UDP2DB_INFO: seconds_from1970 is %s\n", ctime(&seconds_from1970));
   fprintf(stdout, "UDP2DB_INFO: utc_start is %s\n", utc_start);
 
   // need to understand how data streams are sorted

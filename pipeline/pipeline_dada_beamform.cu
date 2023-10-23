@@ -271,7 +271,7 @@ int main(int argc, char *argv[]){
   int naverage_zoom = dada_header.naverage_zoom;
   int pkt_header_size = dada_header.pkt_header;
   int pkt_data_size = dada_header.pkt_data;
-  int pkt_size = pkt_header_size + pkt_data_size;
+  //int pkt_size = pkt_header_size + pkt_data_size;
   
   // 根据输入ring buffer 参数计算输出ring buffer的参数
   int nsamp_packed = npkt*pkt_nsamp;    //每个block包含的samp数目

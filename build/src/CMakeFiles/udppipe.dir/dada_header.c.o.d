@@ -1,5 +1,5 @@
 src/CMakeFiles/udppipe.dir/dada_header.c.o: \
- /home/hero/code/udp-pipeline/src/dada_header.c \
+ /home/hero/code/PAF_pipeline/src/dada_header.c \
  /usr/include/stdc-predef.h /usr/local/include/futils.h \
  /usr/local/include/dada_def.h /usr/include/unistd.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
@@ -21,7 +21,7 @@ src/CMakeFiles/udppipe.dir/dada_header.c.o: \
  /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
  /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
  /usr/local/include/ascii_header.h \
- /home/hero/code/udp-pipeline/src/../include/dada_header.h \
+ /home/hero/code/PAF_pipeline/src/../include/dada_header.h \
  /usr/include/stdlib.h /usr/include/x86_64-linux-gnu/bits/waitflags.h \
  /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
  /usr/include/x86_64-linux-gnu/bits/floatn.h \

@@ -1,4 +1,4 @@
-pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o : /home/hero/code/udp-pipeline/pipeline/pipeline_dada_beamform.cu \
+pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o : /home/hero/code/PAF_pipeline/pipeline/pipeline_dada_beamform.cu \
     /usr/include/stdc-predef.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda_runtime.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/crt/host_config.h \
@@ -252,8 +252,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o : /ho
     /usr/include/c++/7/bits/stl_relops.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda_bf16.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda_bf16.hpp \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/cuda_utilities.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/sharedutilities.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/cuda_utilities.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/sharedutilities.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cufft.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/curand.h \
@@ -272,19 +272,19 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o : /ho
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/curand_lognormal.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/curand_poisson.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/curand_discrete2.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/helper_cuda.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/helper_string.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/helper_cuda.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/helper_string.h \
     /usr/include/c++/7/fstream \
     /usr/include/c++/7/bits/codecvt.h \
     /usr/include/x86_64-linux-gnu/c++/7/bits/basic_file.h \
     /usr/include/x86_64-linux-gnu/c++/7/bits/c++io.h \
     /usr/include/c++/7/bits/fstream.tcc \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/cuda_real_utilities.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/realconvertor.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/realdifferentiator.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/realgenerators.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/realhistogram.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/realreduction.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/cuda_real_utilities.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/realconvertor.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/realdifferentiator.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/realgenerators.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/realhistogram.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/realreduction.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cooperative_groups.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cooperative_groups/details/info.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda/std/type_traits \
@@ -412,26 +412,26 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o : /ho
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda/std/detail/__functional_base \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__functional_base \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda/std/detail/libcxx/include/functional \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/realstatistic.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/cuda_complex_utilities.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/complexbuilder.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/complexsplitter.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/amplitudephasecalculator.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/cuda_memory_utilities.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/devicedataextractor.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/devicememoryallocator.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/hostdataextractor.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/hostmemoryallocator.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/cuda/managedmemoryallocator.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/test.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/realstatistic.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/cuda_complex_utilities.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/complexbuilder.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/complexsplitter.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/amplitudephasecalculator.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/cuda_memory_utilities.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/devicedataextractor.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/devicememoryallocator.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/hostdataextractor.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/hostmemoryallocator.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/cuda/managedmemoryallocator.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/test.h \
     /usr/include/x86_64-linux-gnu/sys/time.h \
     /usr/include/inttypes.h \
     /usr/include/c++/7/complex \
     /usr/include/c++/7/sstream \
     /usr/include/c++/7/bits/sstream.tcc \
-    /home/hero/code/udp-pipeline/pipeline/../include/krnl.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/dada_header.h \
-    /home/hero/code/udp-pipeline/pipeline/../include/dada_util.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/krnl.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/dada_header.h \
+    /home/hero/code/PAF_pipeline/pipeline/../include/dada_util.h \
     /usr/local/include/ipcio.h \
     /usr/local/include/ipcbuf.h \
     /usr/local/include/futils.h \

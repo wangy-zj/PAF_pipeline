@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/udpgen.dir/udp.cpp.o"
+  "CMakeFiles/udpgen.dir/udp.cpp.o.d"
   "CMakeFiles/udpgen.dir/udpgen.cpp.o"
   "CMakeFiles/udpgen.dir/udpgen.cpp.o.d"
   "udpgen"

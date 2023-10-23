@@ -1,4 +1,4 @@
-src/CMakeFiles/udppipe.dir/krnl.cu.o : /home/hero/code/udp-pipeline/src/krnl.cu \
+src/CMakeFiles/udppipe.dir/krnl.cu.o : /home/hero/code/PAF_pipeline/src/krnl.cu \
     /usr/include/stdc-predef.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/cuda_runtime.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/crt/host_config.h \
@@ -151,7 +151,7 @@ src/CMakeFiles/udppipe.dir/krnl.cu.o : /home/hero/code/udp-pipeline/src/krnl.cu 
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/surface_indirect_functions.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/crt/cudacc_ext.h \
     /usr/local/cuda-11.7/bin/../targets/x86_64-linux/include/device_launch_parameters.h \
-    /home/hero/code/udp-pipeline/src/../include/krnl.h \
+    /home/hero/code/PAF_pipeline/src/../include/krnl.h \
     /usr/include/x86_64-linux-gnu/sys/time.h \
     /usr/include/getopt.h \
     /usr/include/x86_64-linux-gnu/bits/getopt_core.h \

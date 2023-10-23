@@ -1,6 +1,6 @@
 src/CMakeFiles/udppipe.dir/dada_util.c.o: \
- /home/hero/code/udp-pipeline/src/dada_util.c /usr/include/stdc-predef.h \
- /home/hero/code/udp-pipeline/src/../include/dada_util.h \
+ /home/hero/code/PAF_pipeline/src/dada_util.c /usr/include/stdc-predef.h \
+ /home/hero/code/PAF_pipeline/src/../include/dada_util.h \
  /usr/include/stdlib.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \

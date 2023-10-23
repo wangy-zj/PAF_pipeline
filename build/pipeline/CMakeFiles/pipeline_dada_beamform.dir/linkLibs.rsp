@@ -1,0 +1,1 @@
+ -Wl,-rpath,/usr/local/lib -lcufft -lcurand -lcudart -lcublas /usr/local/lib/libpsrdada.so ../src/libudppipe.a "/usr/lib/gcc/x86_64-linux-gnu/7/libgomp.so" -lpthread -lcudadevrt -lcudart_static -lrt -lpthread -ldl 

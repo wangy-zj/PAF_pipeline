@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/udp2db.dir/udp.cpp.o"
+  "CMakeFiles/udp2db.dir/udp.cpp.o.d"
   "CMakeFiles/udp2db.dir/udp2db.cpp.o"
   "CMakeFiles/udp2db.dir/udp2db.cpp.o.d"
   "udp2db"
