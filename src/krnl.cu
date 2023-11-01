@@ -3,30 +3,52 @@
 #endif
 
 #include "../include/krnl.h"
+#include "../pipeline/beamform.hh"
 
 
-__global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp, int inter,int chan){
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
-  if(index<nsamp && index%8==0){
-    output[index] = make_cuFloatComplex((float)input[index],(float)input[index+1]);
+__global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp){
+  const int n_antenna = gridDim.x;
+  const int n_timestep = gridDim.y;
+  const int n_chan = blockDim.x;
+
+  const int antenna_idx = blockIdx.x;
+  const int timestep_idx = blockIdx.y;
+  const int chan_idx = threadIdx.x;
+
+  const int input_idx = antenna_idx * n_timestep * n_chan + timestep_idx * n_chan + chan_idx;
+  const int output_idx = chan_idx * n_antenna * n_timestep + timestep_idx * n_antenna + antenna_idx;
+
+  if(input_idx<nsamp){
+    output[output_idx] = make_cuFloatComplex((float)input[input_idx*2],(float)input[input_idx*2+1]);
   }
 }
 
 __global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_accu, int naverage, int reset){
-  int index = blockIdx.x * blockDim.x + threadIdx.x;
-  if (index < nsamp_accu){
-    float accumulate = 0;
-    for(int i = 0; i< naverage; i++){
-      int index_data = nsamp_accu*naverage + i;
-      float amp = cuCabsf(input[index_data]);
-      accumulate +=(amp*amp);
-    }
-    if(reset){
-    output[index] = accumulate;
-    }else{
-    output[index] += accumulate;
-  }
-  }
+  const int n_batch = gridDim.x;
+  const int n_freq = gridDim.y;
+  const int n_beams = blockDim.x;
+
+  const int batching_idx = blockIdx.x;
+  const int freq_idx = blockIdx.y;
+  const int beam_idx = threadIdx.x;
+
+  __shared__ float shmem[N_BEAM];
+	shmem[beam_idx] = 0;			// initialize shared memory to zero
+
+	const int input_idx = freq_idx * n_batch * naverage * n_beams 	// deal with frequency component first
+								+ batching_idx * naverage * n_beams  		// deal with the indexing for each output next
+																		// Each thread starts on the first time-pol index 
+																		// (b/c we iterate over all time-pol indicies in for loop below)
+								+ beam_idx;							   	// start each thread on the first element of each beam
+
+	const int output_idx = batching_idx * n_freq * n_beams + freq_idx * n_beams + beam_idx;
+
+	#pragma unroll
+	for (int i = input_idx; i < input_idx + naverage*n_beams; i += n_beams) {
+		shmem[beam_idx] += cuCabsf(input[i]);
+	}
+
+	output[output_idx] = shmem[beam_idx]; // slowest to fastest indicies: freq, beam
 }
 
 __global__ void krnl_power_zoomfft(cuComplex *input, float *output, int nfft, int nchan, int reset){
@@ -49,64 +71,3 @@ __global__ void krnl_power_zoomfft(cuComplex *input, float *output, int nfft, in
   }
 }
 
-
-__global__ void krnl_power_taccumulate_1ant1pol(cuComplex *input, float *output, int nfft, int nchan, int reset){
-
-  int ichan = blockIdx.x*blockDim.x + threadIdx.x;
-  if (ichan < nchan){
-    float accumulate = 0;
-    
-    for(int ifft = 0; ifft < nfft; ifft++){
-      int index = ifft*nchan + ichan;
-      float amp = cuCabsf(input[index]);
-      accumulate += (amp*amp); // power, not amp
-    }
-
-    // looks like numpy.fft.rfft has the same scaling factor as R2C cufft 
-    if(reset){
-      output[ichan] = accumulate;
-    }else{
-      output[ichan] += accumulate;
-    }
-  }
-}
-
-/*
-  This kernel is purely for the transpose of [NFFT-NCHAN] data into [NCHAN-NFFT]
-  n: NCHAN
-  m: NFFT
-*/
-__global__ void krnl_tf2ft_1ant1pol(const cuComplex* in, cuComplex *out, int m, int n){  
-  
-  __shared__ cuComplex tile[TILE_DIM][TILE_DIM + 1];
-
-  //gridsize_transpose.x = ceil(NCHAN / TILE_DIM) = ceil(n / TILE_DIM);
-  //gridsize_transpose.y = ceil(NFFT  / TILE_DIM) = ceil(m / TILE_DIM);
-  //gridsize_transpose.z = 1;
-  //blocksize_transpose.x = TILE_DIM;
-  //blocksize_transpose.y = NROWBLOCK_TRANS;
-  //blocksize_transpose.z = 1;
-  
-  // Load matrix into tile
-  // Every Thread loads in this case 4 elements into tile.
-  // TILE_DIM/NROWBLOCK_TRANS = 32/8 = 4 
-  
-  int i_n = blockIdx.x * TILE_DIM + threadIdx.x;
-  int i_m = blockIdx.y * TILE_DIM + threadIdx.y; 
-  for (int i = 0; i < TILE_DIM; i += NROWBLOCK_TRANS) {
-    if(i_n < n  && (i_m+i) < m){
-      int64_t loc_in = (i_m+i)*n + i_n;
-      tile[threadIdx.y+i][threadIdx.x] = in[loc_in];
-    }
-  }
-  __syncthreads();
-  
-  i_n = blockIdx.y * TILE_DIM + threadIdx.x; 
-  i_m = blockIdx.x * TILE_DIM + threadIdx.y;
-  for (int i = 0; i < TILE_DIM; i += NROWBLOCK_TRANS) {
-    if(i_n < m  && (i_m+i) < n){
-      int64_t loc_out = (i_m+i)*m + i_n;
-      out[loc_out] = tile[threadIdx.x][threadIdx.y+i];
-    }
-  }
-}

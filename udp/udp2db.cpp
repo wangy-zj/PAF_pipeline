@@ -266,7 +266,7 @@ int main(int argc, char *argv[]){
 
   // check to see if we can fit integer number of packets of all streams into a single ring buffer block
   uint64_t bufsz = ipcbuf_get_bufsz(data_block);
-  if(bufsz%(PKT_DTSZ*NSTREAM_UDP) != 0){
+  if(bufsz%(PKT_DTSZ*N_ANTENNA) != 0){
     fprintf(stderr, "UDP2DB_ERROR: bad choice of ring buffer block size, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
 	    __FILE__, __LINE__);
@@ -274,11 +274,11 @@ int main(int argc, char *argv[]){
     close(sock);
     exit(EXIT_FAILURE);
   }
-  int npacket = bufsz/(PKT_DTSZ*NSTREAM_UDP); //单个port发送包的数目
+  int npacket = bufsz/(PKT_DTSZ*N_ANTENNA); //单个port发送包的数目
   fprintf(stdout, "UDP2DB_INFO: bufsz is %" PRIu64 "\n", bufsz);
   fprintf(stdout, "UDP2DB_INFO: npacket is %d\n", npacket);
 
-  uint64_t npacket_expected = npacket*NSTREAM_UDP*nblock; // number of packet expected of each report cycle
+  uint64_t npacket_expected = npacket*N_ANTENNA*nblock; // number of packet expected of each report cycle
   double block_duration  = 1.0E-6*npacket*PKT_DURATION;   //单个block的数据时间
   double report_interval = nblock*block_duration;         //报告间隔，每隔nblock报告一次
   fprintf(stdout, "UDP2DB_INFO: npacket_expected is %" PRIu64 "\n", npacket_expected);
@@ -315,7 +315,7 @@ int main(int argc, char *argv[]){
 
   // need to understand how data streams are sorted
   // otherwise I can not make bandwidth and nchan right
-  uint64_t bytes_per_second = 1E6*PKT_DTSZ*NSTREAM_UDP/(double)PKT_DURATION;  //每秒传输的数据量
+  uint64_t bytes_per_second = 1E6*PKT_DTSZ*N_ANTENNA/(double)PKT_DURATION;  //每秒传输的数据量
   uint64_t file_size        = bytes_per_second*nsecond_record;                //计算实际每个file的大小
   fprintf(stdout, "UDP2DB_INFO: bytes_per_second is %" PRIu64 "\n", bytes_per_second);
   fprintf(stdout, "UDP2DB_INFO: file_size is %" PRIu64 "\n", file_size);
@@ -326,8 +326,15 @@ int main(int argc, char *argv[]){
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
+
+  if (ascii_header_set(hdrbuf, "NANTENNA", "%d", N_ANTENNA) < 0)  {
+    fprintf(stderr, "UDP2DB_ERROR: Error setting NANTENNA, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
   
-  if (ascii_header_set(hdrbuf, "FREQ", "%f", freq) < 0)  {
+  if (ascii_header_set(hdrbuf, "FREQ", "%f", FREQ) < 0)  {
     fprintf(stderr, "UDP2DB_ERROR: Error setting FREQ, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
@@ -347,7 +354,7 @@ int main(int argc, char *argv[]){
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  
+  /*
   if (ascii_header_set(hdrbuf, "PICOSECONDS", "%" PRIu64 "", picoseconds) < 0)  {
     fprintf(stderr, "UDP2DB_ERROR: Error setting PICOSECONDS, "
             "which happens at %s, line [%d].\n",
@@ -361,7 +368,7 @@ int main(int argc, char *argv[]){
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
-
+  */
   if (ascii_header_set(hdrbuf, "FILE_SIZE", "%" PRIu64 "", file_size) < 0)  {
     fprintf(stderr, "UDP2DB_ERROR: Error setting FILE_SIZE, "
             "which happens at %s, line [%d].\n",
@@ -412,14 +419,14 @@ int main(int argc, char *argv[]){
 #endif
 
     int diff_counter = counter - counter0;
-    int loc_packet   = diff_counter*NSTREAM_UDP+ad;  //包位置信息，考虑到不同ad的包
+    int loc_packet   = diff_counter*N_ANTENNA+ad;  //包位置信息，考虑到不同ad的包
     
     // We only cope with packet loss within a single buffer block
     if(diff_counter >= npacket){
       ipcbuf_mark_filled(data_block, bufsz); // Open a ring buffer block
       
       counter0   += npacket;
-      loc_packet -= (npacket*NSTREAM_UDP);
+      loc_packet -= (npacket*N_ANTENNA);
       nblock_recorded++;
       
       if(nblock_recorded%nblock == 0){
