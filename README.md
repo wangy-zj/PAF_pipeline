@@ -2,13 +2,13 @@
 
 ## 目录说明
 
-header：dada格式的header文件，后续考虑参数写在.h文件中
-
-pipeline：波束合成+积分
-
-udp：将udp包合并为dada格式
-
-src和include：依赖的C文件和头文件
+       header：dada格式的header文件，后续考虑参数写在.h文件中
+       
+       pipeline：波束合成+积分
+       
+       udp：将udp包合并为dada格式
+       
+       src和include：依赖的C文件和头文件
 
 ## 修改scripts目录下的pipeline.sh脚本
 
