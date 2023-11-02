@@ -84,8 +84,8 @@ int main(int argc, char *argv[]){
   
   fprintf(stdout, "UDPGEN_INFO: Require to send %d seconds data\n", nsecond);
 
-  int socks[NSTREAM_UDP] = {0};
-  for(int i = 0; i < NSTREAM_UDP; i++) {    
+  int socks[N_ANTENNA] = {0};
+  for(int i = 0; i < N_ANTENNA; i++) {    
     /* Setup source socket */
     socks[i] = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (setsockopt(socks[i], SOL_SOCKET, SO_SNDTIMEO, (const char*)&tout, sizeof(tout))){
@@ -178,7 +178,7 @@ int main(int argc, char *argv[]){
 
   uint64_t npacket_report = 1E6*nsecond_report/(double)PKT_DURATION;
   double time_report      = 1.0E-6*npacket_report*PKT_DURATION;
-  uint64_t bytes_report   = PKTSZ*NSTREAM_UDP*npacket_report;
+  uint64_t bytes_report   = PKTSZ*N_ANTENNA*npacket_report;
   fprintf(stdout, "UDPGEN_INFO: Will report traffic every % " PRIu64 " packets\n", npacket_report);
   fprintf(stdout, "UDPGEN_INFO: Will report traffic every % " PRIu64 " bytes\n", bytes_report);
   fprintf(stdout, "UDPGEN_INFO: Required to report traffic every %.6f seconds\n\n", time_report);
@@ -193,7 +193,7 @@ int main(int argc, char *argv[]){
     clock_gettime( CLOCK_REALTIME, &start);    
     tsadd( &start, &sleep, &then );
 
-    for(int i = 0; i < NSTREAM_UDP; i++){
+    for(int i = 0; i < N_ANTENNA; i++){
       packet_header->flag = AD0+i;
       sendto(socks[i], buf, PKTSZ, 0, (struct sockaddr *)&dest, dest_len);
     }
@@ -221,7 +221,7 @@ int main(int argc, char *argv[]){
   }
 
   // close sockets
-  for(int i = 0; i < NSTREAM_UDP; i++){
+  for(int i = 0; i < N_ANTENNA; i++){
     close(socks[i]);
   }
   

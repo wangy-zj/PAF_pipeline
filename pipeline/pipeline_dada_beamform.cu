@@ -45,12 +45,6 @@ void usage(){
 	  );
 }
 
-__global__ void float_cucomplex(float *real, float *imag, cuComplex *output){
-    int index = blockIdx.x * blockDim.x + threadIdx.x;
-    output[index] = make_cuComplex(real[index],imag[index]);
-}
-
-
 int main(int argc, char *argv[]){  
   struct option options[] = {
 			     {"input_key",         1, 0, 'i'},
@@ -78,14 +72,12 @@ int main(int argc, char *argv[]){
       key_t input_key_tmp;
       ss = sscanf(optarg, "%x", &input_key_tmp);
       if(ss != 1) {
-	fprintf(stderr, "PROCESS_ERROR: Could not parse input key from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	usage();
-	
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "PROCESS_ERROR: Could not parse input key from %s, \n", optarg);
+        fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+        exit(EXIT_FAILURE);
       }
       else{
-	input_key = input_key_tmp;
+	      input_key = input_key_tmp;
       }
       break;
 
@@ -93,14 +85,12 @@ int main(int argc, char *argv[]){
       key_t output_key_tmp;
       ss = sscanf(optarg, "%x", &output_key_tmp);
       if(ss != 1) {
-	fprintf(stderr, "PROCESS_ERROR: Could not parse output key from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	usage();
-	
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "PROCESS_ERROR: Could not parse output key from %s, \n", optarg);
+        fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+        exit(EXIT_FAILURE);
       }
       else{
-	beamform_key = output_key_tmp;
+        beamform_key = output_key_tmp;
       }
       break;
 
@@ -109,12 +99,11 @@ int main(int argc, char *argv[]){
       ss = sscanf(optarg, "%d", &gpu_tmp);
       if (ss!=1){
         fprintf(stderr, "PROCESS ERROR: Could not parse GPU id from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-
-	exit(EXIT_FAILURE);
+	      fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+        exit(EXIT_FAILURE);
       }
       else {
-	gpu = gpu_tmp;
+	      gpu = gpu_tmp;
       }
       break; 
     case 'h':

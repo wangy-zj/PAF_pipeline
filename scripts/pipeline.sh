@@ -2,7 +2,7 @@
 
 echo="echo -e"
 
-$echo "This is a pipeline for beamforming at NAOC\n"
+$echo "This is a pipeline for beamforming\n"
 
 # There will be three ring buffers
 # The first one is used to receive raw data
@@ -12,6 +12,12 @@ $echo "This is a pipeline for beamforming at NAOC\n"
 # The first ring buffer need two readers as we need to read its data to GPU and write its data to disk
 # The second ring buffer has only one reader
 # The last ring buffer has only one reader as well
+
+WORK_ROOT=/home/hero/code
+project_root=$WORK_ROOT/PAF_pipeline
+hdr_root=$project_root/header
+beamform_command=$project_root/build/pipeline/pipeline_dada_beamform
+udp_command=$project_root/build/udp/udp2db
 
 $echo "Setting up ring buffers"
 
@@ -62,14 +68,24 @@ $writer_bmf & # should be unblock
 
 # now gpu pipeline
 $echo "Starting process"
-process="../build/pipeline/pipeline_dada_beamform -i $key_raw -o $key_bmf -g 0" # need to add other configurations as well
+process="$beamform_command -i $key_raw -o $key_bmf -g 0" # need to add other configurations as well
 $echo "process $process\n"
 $process & # should be unblock
 
 # now udp2db
-udp2db="bash ./udp2db.sh"
-$echo "udp2db $udp2db\n"
-$udp2db
+nblock=10
+nsecond=10
+freq=1420
+hdr_fname=$hdr_root/paf_test.header
+
+$echo "nblock is:    $nblock"
+$echo "nsecond is:   $nsecond"
+$echo "freq is:      $freq\n"
+
+# Start udp2db
+$udp_command -f $hdr_fname -k $key_raw -n $nblock -N $nsecond
+sleep 1s
+$echo "done udp2db setup\n"
 
 sleep 1s # to wait all process finishes
 $echo "Killing dada_dbdisk"
