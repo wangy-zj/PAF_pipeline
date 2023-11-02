@@ -53,13 +53,11 @@ $echo "udp_command is:  $udp_command\n"
 pkt_dtsz=4096
 nstream_gpu=24
 npkt=2048
-numa=0
 key=a000
 bufsz=$(( pkt_dtsz*nstream_gpu*npkt ))
 $echo "pkt_dtsz is:    $pkt_dtsz"
 $echo "nstream_gpu is: $nstream_gpu"
 $echo "npkt is:        $npkt"
-$echo "numa is:        $numa"
 $echo "DADA key is:    $key"
 $echo "bufsz is:       $bufsz\n"
 
@@ -78,17 +76,16 @@ $echo "had the data consumer up\n"
 
 # setup tests
 hdr_fname=$hdr_root/paf_test.header
-nblock=1
+nblock=10
 nsecond=10
 freq=1420
 
-$echo "hdr_fname is: $hdr_fname"
 $echo "nblock is:    $nblock"
 $echo "nsecond is:   $nsecond"
 $echo "freq is:      $freq\n"
 
 # Start udp2db
-$udp_command -f $hdr_fname -F $freq -n $nblock -N $nsecond -k $key
+$udp_command -f $hdr_fname -n $nblock -N $nsecond -k $key
 sleep 1s
 $echo "done udp2db setup\n"
 cleanup
