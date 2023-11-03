@@ -72,7 +72,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "-std=c++14 --generate-code=arch=compute_61,code=[compute_61,sm_61] --generate-code=arch=compute_75,code=[compute_75,sm_75] --generate-code=arch=compute_86,code=[compute_86,sm_86]"
+					"fragment" : "-g -std=c++14 --generate-code=arch=compute_61,code=[compute_61,sm_61] --generate-code=arch=compute_75,code=[compute_75,sm_75] --generate-code=arch=compute_86,code=[compute_86,sm_86]"
 				}
 			],
 			"includes" : 
@@ -110,7 +110,7 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "--generate-code=arch=compute_61,code=[compute_61,sm_61] --generate-code=arch=compute_75,code=[compute_75,sm_75] --generate-code=arch=compute_86,code=[compute_86,sm_86]",
+				"fragment" : "-g --generate-code=arch=compute_61,code=[compute_61,sm_61] --generate-code=arch=compute_75,code=[compute_75,sm_75] --generate-code=arch=compute_86,code=[compute_86,sm_86]",
 				"role" : "flags"
 			},
 			{
@@ -118,7 +118,11 @@
 				"role" : "flags"
 			},
 			{
-				"fragment" : "-Wl,-rpath,/usr/local/lib",
+				"fragment" : "-L/usr/lib/gcc/x86_64-linux-gnu/6",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-Wl,-rpath,/usr/local/lib:/usr/lib/gcc/x86_64-linux-gnu/6",
 				"role" : "libraries"
 			},
 			{
@@ -148,12 +152,12 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "../src/libudppipe.a",
+				"fragment" : "src/libudppipe.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 6,
-				"fragment" : "/usr/lib/gcc/x86_64-linux-gnu/7/libgomp.so",
+				"fragment" : "/usr/lib/gcc/x86_64-linux-gnu/6/libgomp.so",
 				"role" : "libraries"
 			},
 			{

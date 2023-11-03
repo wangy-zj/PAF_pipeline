@@ -72,6 +72,9 @@
 			"compileCommandFragments" : 
 			[
 				{
+					"fragment" : "-g"
+				},
+				{
 					"backtrace" : 2,
 					"fragment" : "-fopenmp"
 				}
@@ -108,6 +111,10 @@
 		"commandFragments" : 
 		[
 			{
+				"fragment" : "-g",
+				"role" : "flags"
+			},
+			{
 				"fragment" : "",
 				"role" : "flags"
 			},
@@ -117,6 +124,10 @@
 			},
 			{
 				"fragment" : "-L/usr/local/cuda-11.7/targets/x86_64-linux/lib",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "-L/usr/lib/gcc/x86_64-linux-gnu/7",
 				"role" : "libraryPath"
 			},
 			{
@@ -130,12 +141,12 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "../src/libudppipe.a",
+				"fragment" : "src/libudppipe.a",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 6,
-				"fragment" : "/usr/lib/gcc/x86_64-linux-gnu/7/libgomp.so",
+				"fragment" : "/usr/lib/gcc/x86_64-linux-gnu/6/libgomp.so",
 				"role" : "libraries"
 			},
 			{

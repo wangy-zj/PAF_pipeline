@@ -445,10 +445,119 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
   /usr/include/syslog.h \
   /usr/include/x86_64-linux-gnu/sys/syslog.h \
   /usr/include/x86_64-linux-gnu/bits/syslog-path.h \
-  /usr/local/include/dada_cuda.h
+  /usr/local/include/dada_cuda.h \
+  /home/hero/code/PAF_pipeline/pipeline/beamform.hh \
+  /usr/include/c++/7/iomanip \
+  /usr/include/c++/7/locale \
+  /usr/include/c++/7/bits/locale_facets_nonio.h \
+  /usr/include/x86_64-linux-gnu/c++/7/bits/time_members.h \
+  /usr/include/x86_64-linux-gnu/c++/7/bits/messages_members.h \
+  /usr/include/libintl.h \
+  /usr/include/c++/7/bits/locale_facets_nonio.tcc \
+  /usr/include/c++/7/bits/locale_conv.h \
+  /usr/include/c++/7/bits/quoted_string.h \
+  /home/hero/code/PAF_pipeline/udp/udp.h \
+  /usr/include/signal.h \
+  /usr/include/x86_64-linux-gnu/bits/signum.h \
+  /usr/include/x86_64-linux-gnu/bits/signum-generic.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigval_t.h \
+  /usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h \
+  /usr/include/x86_64-linux-gnu/bits/sigevent-consts.h \
+  /usr/include/x86_64-linux-gnu/bits/sigaction.h \
+  /usr/include/x86_64-linux-gnu/bits/sigcontext.h \
+  /usr/include/x86_64-linux-gnu/bits/types/stack_t.h \
+  /usr/include/x86_64-linux-gnu/sys/ucontext.h \
+  /usr/include/x86_64-linux-gnu/bits/sigstack.h \
+  /usr/include/x86_64-linux-gnu/bits/ss_flags.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h \
+  /usr/include/x86_64-linux-gnu/bits/sigthread.h \
+  /usr/include/c++/7/algorithm \
+  /usr/include/c++/7/bits/stl_algo.h \
+  /usr/include/c++/7/bits/algorithmfwd.h \
+  /usr/include/c++/7/bits/stl_heap.h \
+  /usr/include/c++/7/bits/uniform_int_dist.h \
+  /usr/include/netdb.h \
+  /usr/include/netinet/in.h \
+  /usr/include/x86_64-linux-gnu/sys/socket.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h \
+  /usr/include/x86_64-linux-gnu/bits/socket.h \
+  /usr/include/x86_64-linux-gnu/bits/socket_type.h \
+  /usr/include/x86_64-linux-gnu/bits/sockaddr.h \
+  /usr/include/x86_64-linux-gnu/asm/socket.h \
+  /usr/include/asm-generic/socket.h \
+  /usr/include/x86_64-linux-gnu/asm/sockios.h \
+  /usr/include/asm-generic/sockios.h \
+  /usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h \
+  /usr/include/x86_64-linux-gnu/bits/in.h \
+  /usr/include/rpc/netdb.h \
+  /usr/include/x86_64-linux-gnu/bits/netdb.h \
+  /usr/local/include/dada_client.h \
+  /usr/local/include/dada_affinity.h \
+  /usr/include/x86_64-linux-gnu/sys/mman.h \
+  /usr/include/x86_64-linux-gnu/bits/mman.h \
+  /usr/include/x86_64-linux-gnu/bits/mman-linux.h \
+  /usr/include/x86_64-linux-gnu/bits/mman-shared.h
 
+
+/usr/include/x86_64-linux-gnu/bits/mman.h:
+
+/usr/include/x86_64-linux-gnu/sys/mman.h:
+
+/usr/local/include/dada_affinity.h:
+
+/usr/local/include/dada_client.h:
+
+/usr/include/asm-generic/sockios.h:
+
+/usr/include/asm-generic/socket.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket.h:
+
+/usr/include/netdb.h:
+
+/usr/include/c++/7/bits/uniform_int_dist.h:
+
+/usr/include/c++/7/bits/stl_algo.h:
+
+/usr/include/c++/7/algorithm:
+
+/usr/include/x86_64-linux-gnu/bits/ss_flags.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigstack.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigcontext.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigevent-consts.h:
+
+/usr/include/x86_64-linux-gnu/bits/sigthread.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigval_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-consts.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-arch.h:
+
+/usr/include/x86_64-linux-gnu/bits/signum.h:
+
+/usr/include/signal.h:
+
+/home/hero/code/PAF_pipeline/udp/udp.h:
+
+/usr/include/c++/7/bits/quoted_string.h:
+
+/usr/include/libintl.h:
+
+/home/hero/code/PAF_pipeline/pipeline/beamform.hh:
 
 /usr/include/x86_64-linux-gnu/bits/syslog-path.h:
+
+/usr/include/x86_64-linux-gnu/c++/7/bits/time_members.h:
 
 /usr/include/x86_64-linux-gnu/sys/syslog.h:
 
@@ -458,9 +567,15 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/local/include/ipcio.h:
 
+/usr/include/x86_64-linux-gnu/bits/mman-linux.h:
+
+/usr/include/x86_64-linux-gnu/sys/ucontext.h:
+
 /usr/local/include/dada_def.h:
 
 /home/hero/code/PAF_pipeline/include/krnl.h:
+
+/usr/include/c++/7/iomanip:
 
 /usr/include/c++/7/sstream:
 
@@ -476,6 +591,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /home/hero/code/PAF_pipeline/include/cuda/hostdataextractor.h:
 
+/usr/include/c++/7/bits/locale_conv.h:
+
 /home/hero/code/PAF_pipeline/include/cuda/devicememoryallocator.h:
 
 /home/hero/code/PAF_pipeline/include/cuda/cuda_complex_utilities.h:
@@ -485,6 +602,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/__functional_base:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/utility:
+
+/usr/include/c++/7/locale:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__tuple:
 
@@ -522,11 +641,15 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/include/x86_64-linux-gnu/asm/bitsperlong.h:
 
+/usr/include/x86_64-linux-gnu/bits/signum-generic.h:
+
 /usr/include/asm-generic/types.h:
 
 /usr/include/linux/types.h:
 
 /usr/include/linux/futex.h:
+
+/usr/include/x86_64-linux-gnu/asm/sockios.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cooperative_groups/details/coalesced_reduce.h:
 
@@ -551,6 +674,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/include/c++/7/ext/aligned_buffer.h:
 
 /usr/include/c++/7/bits/unique_ptr.h:
+
+/usr/include/x86_64-linux-gnu/bits/socket_type.h:
 
 /usr/include/c++/7/bits/postypes.h:
 
@@ -598,6 +723,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/crt/device_double_functions.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/sigaction.h:
+
 /usr/local/cuda-11.7/targets/x86_64-linux/include/device_atomic_functions.hpp:
 
 /usr/include/c++/7/cstdio:
@@ -611,6 +738,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/local/cuda-11.7/targets/x86_64-linux/include/nv/detail/__target_macros:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/crt/device_functions.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_iovec.h:
 
 /usr/include/c++/7/bits/refwrap.h:
 
@@ -674,6 +803,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/crt/sm_70_rt.hpp:
 
+/usr/include/x86_64-linux-gnu/bits/in.h:
+
 /usr/include/stdint.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/support/atomic/atomic_gcc.h:
@@ -720,6 +851,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/include/stdlib.h:
 
+/usr/include/x86_64-linux-gnu/sys/socket.h:
+
 /usr/local/cuda-11.7/targets/x86_64-linux/include/texture_fetch_functions.h:
 
 /usr/local/include/ipcbuf.h:
@@ -753,6 +886,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/include/c++/7/cwchar:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/climits:
+
+/usr/include/x86_64-linux-gnu/asm/socket.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/support/atomic/cxx_atomic.h:
 
@@ -834,7 +969,11 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/include/alloca.h:
 
+/usr/include/c++/7/bits/algorithmfwd.h:
+
 /usr/include/x86_64-linux-gnu/bits/libc-header-start.h:
+
+/usr/include/x86_64-linux-gnu/bits/netdb.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/sm_32_intrinsics.hpp:
 
@@ -852,6 +991,10 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/include/c++/7/bits/stl_function.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct_sigstack.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sig_atomic_t.h:
+
 /usr/include/x86_64-linux-gnu/asm/types.h:
 
 /usr/include/features.h:
@@ -863,6 +1006,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda_runtime_api.h:
 
 /usr/include/time.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/stack_t.h:
 
 /usr/include/unistd.h:
 
@@ -892,6 +1037,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/builtin_types.h:
 
+/usr/include/x86_64-linux-gnu/bits/mman-shared.h:
+
 /usr/include/c++/7/bits/stl_algobase.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/surface_types.h:
@@ -909,6 +1056,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/iterator:
 
 /usr/include/linux/limits.h:
+
+/usr/include/c++/7/bits/stl_heap.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda_bf16.h:
 
@@ -937,6 +1086,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/include/c++/7/bits/streambuf.tcc:
 
 /usr/include/c++/7/thread:
+
+/usr/include/rpc/netdb.h:
 
 /usr/include/strings.h:
 
@@ -981,6 +1132,10 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/include/c++/7/cstdint:
 
 /usr/include/c++/7/bits/stl_construct.h:
+
+/usr/include/c++/7/bits/locale_facets_nonio.tcc:
+
+/usr/include/c++/7/bits/locale_facets_nonio.h:
 
 /usr/include/x86_64-linux-gnu/bits/getopt_core.h:
 
@@ -1064,6 +1219,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/include/locale.h:
 
+/usr/include/netinet/in.h:
+
 /usr/include/x86_64-linux-gnu/bits/locale.h:
 
 /usr/include/c++/7/bits/atomic_base.h:
@@ -1071,6 +1228,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/include/c++/7/ext/atomicity.h:
 
 /usr/include/x86_64-linux-gnu/c++/7/bits/gthr.h:
+
+/usr/include/x86_64-linux-gnu/c++/7/bits/messages_members.h:
 
 /usr/include/x86_64-linux-gnu/bits/cpu-set.h:
 
@@ -1085,6 +1244,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
 
 /usr/include/x86_64-linux-gnu/c++/7/bits/atomic_word.h:
+
+/usr/include/x86_64-linux-gnu/bits/siginfo-consts-arch.h:
 
 /usr/include/x86_64-linux-gnu/bits/select.h:
 
@@ -1113,6 +1274,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /home/hero/code/PAF_pipeline/include/cuda/devicedataextractor.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/curand_mtgp32.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/__sigval_t.h:
 
 /usr/include/c++/7/initializer_list:
 
@@ -1254,6 +1417,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/__config:
 
+/usr/include/x86_64-linux-gnu/bits/types/siginfo_t.h:
+
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__threading_support:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__config:
@@ -1270,9 +1435,13 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__pragma_push:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct_osockaddr.h:
+
 /usr/include/x86_64-linux-gnu/bits/getopt_posix.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__undef_macros:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigevent_t.h:
 
 /usr/include/stdc-predef.h:
 
@@ -1291,6 +1460,8 @@ pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o: /hom
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/__pragma_pop:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/detail/libcxx/include/cassert:
+
+/usr/include/x86_64-linux-gnu/bits/sockaddr.h:
 
 /usr/local/cuda-11.7/targets/x86_64-linux/include/cuda/std/cstdint:
 
