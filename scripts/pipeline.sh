@@ -49,7 +49,7 @@ $echo "This is a pipeline for beamforming\n"
 # The second ring buffer has only one reader
 
 # some path of the code
-project_root=/home/hero/code/PAF_pipeline
+project_root=/home/wangyu/code/PAF_pipeline
 hdr_root=$project_root/header
 beamform_command=$project_root/build/pipeline/pipeline_dada_beamform
 udp_command=$project_root/build/udp/udp2db
@@ -74,10 +74,10 @@ $dada_raw & # should be unblock
 $dada_bmf & # should be unblock
 
 sleep 1s # to wait all buffers are created 
-$echo "\nSetting file writers"
+$echo "\nSetting file writers if you want save the dada files"
 # different type of files should go to different directories
-dir_raw=/home/hero/data/data_raw/ # change it to real value later
-dir_bmf=/home/hero/data/data_bmf/ # change it to real value later
+dir_raw=/home/wangyu/data/data_raw/ # change it to real value later
+dir_bmf=/home/wangyu/data/data_bmf/ # change it to real value later
 
 # 设定写入数据的地址和数据来源ringbuffer
 writer_raw="dada_dbdisk -D $dir_raw -k $key_raw -W" 
