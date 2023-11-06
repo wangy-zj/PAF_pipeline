@@ -166,13 +166,21 @@ int main(int argc, char *argv[]){
 	    __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
+  fprintf(stdout, "PROCESS_INFO:\tWe have input HDU locked\n");
+  fprintf(stdout, "PROCESS_INFO:\tWe have input HDU setup\n");
 
   // Now first read configuration from input ring buffer header & beamform.hh
   dada_header_t dada_header = {0};
-  char *input_hbuf = ipcbuf_get_next_read(input_hblock, NULL);
-  read_dada_header(input_hbuf, &dada_header);
+  char *input_hbuf = ipcbuf_get_next_read(input_hblock,NULL);
+
+  if (ascii_header_get(input_hbuf, "MJD_START", "%lf", &dada_header.mjd_start) < 0)  {
+    fprintf(stderr, "WRITE_DADA_HEADER_ERROR: Error getting MJD_START, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   
-  double mjd_start = dada_header.mjd_start;
   double bf_tsamp = TSAMP*N_AVERAGE;
 
   
@@ -218,9 +226,8 @@ int main(int argc, char *argv[]){
 
   // now we can setup new dada header buffer for output
   char *beamform_hbuf = ipcbuf_get_next_write (beamform_output_hblock);
-  memcpy(beamform_hbuf, input_hbuf, DADA_DEFAULT_HEADER_SIZE);
   // setup beamform output ring buffer header
-  if (ascii_header_set(beamform_hbuf, "MJD_START", "%d", mjd_start) < 0)  {
+  if (ascii_header_set(beamform_hbuf, "MJD_START", "%lf", dada_header.mjd_start) < 0)  {
     fprintf(stderr, "BEAMFORM_ERROR: Error setting MJD_START, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
@@ -358,13 +365,11 @@ int main(int argc, char *argv[]){
                   N_CHAN);
     getLastCudaError("Kernel execution failed [ beamform ]");
 
-    krnl_power_beamform<<<inte_dimgrid, inte_dimblock>>>(d_C,d_beamform_power,N_TIMESTEP_PER_INIT_BLOCK,N_AVERAGE,reset_bf);
+    krnl_power_beamform<<<inte_dimgrid, inte_dimblock>>>(d_C,d_beamform_power,N_TIMESTEP_PER_INIT_BLOCK,N_AVERAGE);
     getLastCudaError("Kernel execution failed [ krnl_power_beamform ]");
 
     nblock++;
     //// 将输出的结果复制到输出ringbuffer
-    if(nblock % N_AVERAGE ==0){
-    reset_bf = 1;
     char *output_bf = ipcbuf_get_next_write(beamform_output_dblock);
     if(!output_bf){
       fprintf(stderr, "Could not get next beamform write data block\n");
@@ -374,10 +379,6 @@ int main(int argc, char *argv[]){
     checkCudaErrors(cudaMemcpy(output_bf, d_beamform_power, bytes_block_beamform, cudaMemcpyDeviceToHost));
     CUDA_STOPTIME(memcpyd2h);  
     ipcbuf_mark_filled(beamform_output_dblock, bytes_block_beamform);
-    fprintf(stdout, "we copy beamform data out\n");
-  }else{
-    reset_bf = 0;
-  }
  }
     
     CUDA_STOPTIME(pipeline);

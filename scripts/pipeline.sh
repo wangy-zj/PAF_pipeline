@@ -57,9 +57,21 @@ udp_command=$project_root/build/udp/udp2db
 $echo "Setting up ring buffers"
 key_raw=a000
 key_bmf=b000
+pkt_dtsz=4096
+n_antenna=10
+pkt_per_block=256
+n_chan=256
+sampsz=2
+n_average=8
+n_beam=180
+timestep_per_pkt=$((pkt_dtsz/n_chan/sampsz))
+timestep_per_block=$((timestep_per_pkt*pkt_per_block))
+initsampsz=4
+
+
 # it will be more flexible if we put equation here to calculate buffer size with some basic configrations
-bufsz_raw=25165824 # buffer block size to hold raw data in bytes, change it to real value later
-bufsz_bmf=20971 # buffer block size to hold beamformed data in bytes, change it to real value later
+bufsz_raw=$((pkt_dtsz*pkt_per_block*n_antenna)) # buffer block size to hold raw data in bytes, change it to real value later
+bufsz_bmf=$((timestep_per_block*initsampsz*n_beam*n_chan/n_average)) # buffer block size to hold beamformed data in bytes, change it to real value later
 
 $echo "key_raw is $key_raw, and bufsz_raw is $bufsz_raw"
 $echo "key_bmf is $key_bmf, and bufsz_bmf is $bufsz_bmf\n"
@@ -91,7 +103,7 @@ $writer_bmf & # should be unblock
 
 # start beamform pipeline
 $echo "Start beamform process"
-process="$beamform_command -i $key_raw -o $key_bmf -g 0" # need to add other configurations as well
+process="$beamform_command -i $key_raw -o $key_bmf -g 1" # need to add other configurations as well
 $echo "$process\n"
 $process & # should be unblock
 
@@ -102,9 +114,10 @@ hdr_fname=$hdr_root/paf_test.header
 
 # Start udp2db
 $echo "Start udp2db process"
-udp_process="$udp_command -f $hdr_fname -k $key_raw -n $nblock -N $nsecond"
+udp_process="$udp_command -k $key_raw -n $nblock -N $nsecond -s 1"
 $echo "$udp_process\n"
 $udp_process
+
 sleep 1s
 $echo "done udp2db setup\n"
 cleanup

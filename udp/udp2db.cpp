@@ -287,6 +287,7 @@ int main(int argc, char *argv[]){
 
   int nblock_expected   = (int)(nsecond/block_duration);    //给定时间内预期接收block数目
   double nsecond_record = nblock_expected*block_duration;   //实际接收到预期block所用的时间
+  double nsecond_save = nblocksave*block_duration;
   fprintf(stdout, "UDP2DB_INFO: nblock_expected is %d\n", nblock_expected);
   fprintf(stdout, "UDP2DB_INFO: asked for %d seconds data, will record %.6f seconds data\n", nsecond, nsecond_record);
 
@@ -317,7 +318,7 @@ int main(int argc, char *argv[]){
   // need to understand how data streams are sorted
   // otherwise I can not make bandwidth and nchan right
   uint64_t bytes_per_second = 1E6*PKT_DTSZ*N_ANTENNA/(double)PKT_DURATION;  //每秒传输的数据量
-  uint64_t file_size        = bytes_per_second*nsecond_record;                //计算实际每个file的大小
+  uint64_t file_size        = bytes_per_second*nsecond_save;                //计算实际每个file的大小
   fprintf(stdout, "UDP2DB_INFO: bytes_per_second is %" PRIu64 "\n", bytes_per_second);
   fprintf(stdout, "UDP2DB_INFO: file_size is %" PRIu64 "\n", file_size);
   
@@ -362,14 +363,14 @@ int main(int argc, char *argv[]){
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  
+  */
   if (ascii_header_set(hdrbuf, "BYTES_PER_SECOND", "%" PRIu64 "", bytes_per_second) < 0)  {
     fprintf(stderr, "UDP2DB_ERROR: Error setting BYTES_PER_SECOND, "
             "which happens at %s, line [%d].\n",
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  */
+  
   if (ascii_header_set(hdrbuf, "FILE_SIZE", "%" PRIu64 "", file_size) < 0)  {
     fprintf(stderr, "UDP2DB_ERROR: Error setting FILE_SIZE, "
             "which happens at %s, line [%d].\n",
