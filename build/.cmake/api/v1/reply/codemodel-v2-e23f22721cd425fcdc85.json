@@ -1,0 +1,135 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "src",
+					"jsonFile" : "directory-src-Debug-b6cf2213fc5053b67c22.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src",
+					"targetIndexes" : 
+					[
+						3
+					]
+				},
+				{
+					"build" : "udp",
+					"jsonFile" : "directory-udp-Debug-da437c4da469e1efb786.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "udp",
+					"targetIndexes" : 
+					[
+						1,
+						2
+					]
+				},
+				{
+					"build" : "pipeline",
+					"jsonFile" : "directory-pipeline-Debug-e74ad31e85be27eb96ee.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.13"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "pipeline",
+					"targetIndexes" : 
+					[
+						0
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					],
+					"name" : "udp-pipeline",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 3,
+					"id" : "pipeline_dada_beamform::@ed5be71de260fadc02b1",
+					"jsonFile" : "target-pipeline_dada_beamform-Debug-d5ff139ef19fd82b7d28.json",
+					"name" : "pipeline_dada_beamform",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "udp2db::@b27288b6f57a1bd795d6",
+					"jsonFile" : "target-udp2db-Debug-ba08729eafad05a07911.json",
+					"name" : "udp2db",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "udpgen::@b27288b6f57a1bd795d6",
+					"jsonFile" : "target-udpgen-Debug-8d049d6dcc356203cf97.json",
+					"name" : "udpgen",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "udppipe::@145eef247bfb46b6828c",
+					"jsonFile" : "target-udppipe-Debug-4106ebced483176616ab.json",
+					"name" : "udppipe",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/hero/code/PAF_pipeline/build",
+		"source" : "/home/hero/code/PAF_pipeline"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 5
+	}
+}

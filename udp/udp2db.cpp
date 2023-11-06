@@ -127,12 +127,12 @@ int main(int argc, char *argv[]){
       exit(EXIT_FAILURE);
     }
   }
-  
+
   /* Print out command line options */
   fprintf(stdout, "UDP2DB_INFO: DADA header file name is %s\n", fname);
   fprintf(stdout, "UDP2DB_INFO: Report traffic status every %d nblock\n", nblock);
   fprintf(stdout, "UDP2DB_INFO: Number of seconds data to receive is %d\n", nsecond);
-  fprintf(stdout, "Number of blocks for each dada file is %d\n", nblocksave);
+  fprintf(stdout, "UDP2DB_INFO: Number of blocks for each dada file is %d\n", nblocksave);
   fprintf(stdout, "UDP2DB_INFO: key is %x\n", key);
   
   /* 1. Create socket and set it up */
@@ -295,6 +295,7 @@ int main(int argc, char *argv[]){
     for now just copy it from header template file 
   */
   char *hdrbuf = ipcbuf_get_next_write(header_block);
+/*
   if(fileread(fname, hdrbuf, DADA_DEFAULT_HEADER_SIZE) < 0){
     fprintf(stderr, "UDP2DB_ERROR: Error reading header file, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
@@ -302,7 +303,7 @@ int main(int argc, char *argv[]){
 
     exit(EXIT_FAILURE);
   }
-
+*/
   // setup mjd_start for reference time
   // we should not use the tmi as tmi is clock time on local computer, not time stamps in data
   // 需要从udp包计算时间，目前是直接获取计算机的当前时间 
