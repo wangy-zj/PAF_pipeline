@@ -22,7 +22,7 @@
 __global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp);
 
 /* calculate the beamform power and integrate by n_average for each channel and beam*/
-__global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_acc, int naverage, int reset);
+__global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_acc, int naverage);
 
 __global__ void krnl_power_zoomfft(cuComplex *input, float *output, int nfft, int nchan, int reset);
   

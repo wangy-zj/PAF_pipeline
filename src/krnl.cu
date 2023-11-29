@@ -23,7 +23,7 @@ __global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp){
   }
 }
 
-__global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_accu, int naverage, int reset){
+__global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_accu, int naverage){
   const int n_batch = gridDim.x;
   const int n_freq = gridDim.y;
   const int n_beams = blockDim.x;
