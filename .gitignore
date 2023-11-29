@@ -3,3 +3,5 @@ test/
 data/
 docs/
 header/
+.vscode/*.json
+build/CMakeFiles/*.ninja
