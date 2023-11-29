@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #include <sys/time.h>
+#include <stdlib.h>
 
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -62,10 +63,10 @@ int main(int argc, char *argv[]){
     case 'n':
       ss = sscanf(optarg, "%d", &nsecond);
       if (ss!=1){
-	fprintf(stderr, "UDPGEN_ERROR: Could not parse nsecond from %s, \n", optarg);
-	fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
-	
-	exit(EXIT_FAILURE);
+        fprintf(stderr, "UDPGEN_ERROR: Could not parse nsecond from %s, \n", optarg);
+        fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
+        
+        exit(EXIT_FAILURE);
       }
       break;
 
