@@ -24,6 +24,7 @@ extern "C" {
     double pkt_tsamp;
     int naverage_bf;
     int naverage_zoom;
+    char utc_start[1024];
   }dada_header_t;
 
   int read_dada_header(const char *dada_header_buffer, dada_header_t *dada_header);

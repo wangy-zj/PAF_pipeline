@@ -5,6 +5,7 @@
 #include <getopt.h>
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include <sys/time.h>
 
@@ -22,20 +23,20 @@ int main(int argc, char *argv[]){
 
   char fname[STR_BUFLEN] = {0};
   double freq = 1400.0;
-  int nblock  = 100;
+  int nsecond_report  = 2;
   int nsecond = 10;
   int nblocksave = 2;
 
   key_t key = 0x0000a000;
   
-  sprintf(fname, "../../header/paf_test.header");
+  //sprintf(fname, "../../header/paf_test.header");
   
   struct option options[] = {
     {"fname",   required_argument, 0, 'f'},
     {"freq",    required_argument, 0, 'F'},
-    {"nblock",  required_argument, 0, 'n'},
+    {"nsecond_report",  required_argument, 0, 'n'},
     {"nsecond", required_argument, 0, 'N'},
-    {"nblcoksave",required_argument, 0, 's'},
+    {"nblocksave",required_argument, 0, 's'},
     {"key",     required_argument, 0, 'k'},
     {"help",    no_argument,       0, 'h'}, 
     {0,         0, 0, 0}
@@ -73,9 +74,9 @@ int main(int argc, char *argv[]){
       break;
 
     case 'n':
-      ss = sscanf(optarg, "%d", &nblock);
+      ss = sscanf(optarg, "%d", &nsecond_report);
       if (ss!=1){
-	      fprintf(stderr, "UDP2DB_ERROR: Could not parse nblock from %s, \n", optarg);
+	      fprintf(stderr, "UDP2DB_ERROR: Could not parse nsecond_report from %s, \n", optarg);
 	      fprintf(stderr, "which happens at \"%s\", line [%d], has to abort.\n",  __FILE__, __LINE__);
 	
 	      exit(EXIT_FAILURE);
@@ -118,19 +119,19 @@ int main(int argc, char *argv[]){
 	      "Usage: udp2db [options]\n"
 	      " -fname/-f   <string> DADA header template file name, [default %s]\n"
 	      " -freq/-F    <double> Center frequency in MHz, [default %.6f MHz]\n"
-	      " -nblock/-n  <int>    Report traffic status every these number of blocks, [default %d]\n"
+	      " -nsecond_report/-n  <int>    Report traffic status every these number of seconds, [default %d]\n"
 	      " -nsecond/-N <int>    Number of seconds data to receive, [default %d]\n"
-        " -nblcoksave/-s <int> Number of blocks data to each dada file, [default %d]\n"
+        " -nblocksave/-s <int> Number of blocks data to each dada file, [default %d]\n"
 	      " -key/-k     <key>    Hexadecimal shared memory key of PSRDADA ring buffer to write data, [default %x] \n"
 	      " -help/-h             Show help\n",
-	      fname, freq, nblock, nsecond, nblocksave, key);
+	      fname, freq, nsecond_report, nsecond, nblocksave, key);
       exit(EXIT_FAILURE);
     }
   }
 
   /* Print out command line options */
   fprintf(stdout, "UDP2DB_INFO: DADA header file name is %s\n", fname);
-  fprintf(stdout, "UDP2DB_INFO: Report traffic status every %d nblock\n", nblock);
+  fprintf(stdout, "UDP2DB_INFO: Report traffic status every %d seconds\n", nsecond_report);
   fprintf(stdout, "UDP2DB_INFO: Number of seconds data to receive is %d\n", nsecond);
   fprintf(stdout, "UDP2DB_INFO: Number of blocks for each dada file is %d\n", nblocksave);
   fprintf(stdout, "UDP2DB_INFO: key is %x\n", key);
@@ -274,16 +275,18 @@ int main(int argc, char *argv[]){
     close(sock);
     exit(EXIT_FAILURE);
   }
+
   int npacket = bufsz/(PKT_DTSZ*N_ANTENNA); //单个port发送包的数目
   fprintf(stdout, "UDP2DB_INFO: bufsz is %" PRIu64 "\n", bufsz);
   fprintf(stdout, "UDP2DB_INFO: npacket is %d\n", npacket);
 
-  uint64_t npacket_expected = npacket*N_ANTENNA*nblock; // number of packet expected of each report cycle
+  
   double block_duration  = 1.0E-6*npacket*PKT_DURATION;   //单个block的数据时间
-  double report_interval = nblock*block_duration;         //报告间隔，每隔nblock报告一次
+  int nblock = (int)(nsecond_report/block_duration);
+  uint64_t npacket_expected = npacket*N_ANTENNA*nblock; // number of packet expected of each report cycle
+    //报告间隔，每隔nblock报告一次
   fprintf(stdout, "UDP2DB_INFO: npacket_expected is %" PRIu64 "\n", npacket_expected);
   fprintf(stdout, "UDP2DB_INFO: block_duration is %.6f seconds\n", block_duration);
-  fprintf(stdout, "UDP2DB_INFO: report_interval is %.6f seconds\n", report_interval);
 
   int nblock_expected   = (int)(nsecond/block_duration);    //给定时间内预期接收block数目
   double nsecond_record = nblock_expected*block_duration;   //实际接收到预期block所用的时间
@@ -296,7 +299,7 @@ int main(int argc, char *argv[]){
     for now just copy it from header template file 
   */
   char *hdrbuf = ipcbuf_get_next_write(header_block);
-/*
+
   if(fileread(fname, hdrbuf, DADA_DEFAULT_HEADER_SIZE) < 0){
     fprintf(stderr, "UDP2DB_ERROR: Error reading header file, "
 	    "which happens at \"%s\", line [%d], has to abort.\n",
@@ -304,7 +307,7 @@ int main(int argc, char *argv[]){
 
     exit(EXIT_FAILURE);
   }
-*/
+
   // setup mjd_start for reference time
   // we should not use the tmi as tmi is clock time on local computer, not time stamps in data
   // 需要从udp包计算时间，目前是直接获取计算机的当前时间 
@@ -318,7 +321,7 @@ int main(int argc, char *argv[]){
   // need to understand how data streams are sorted
   // otherwise I can not make bandwidth and nchan right
   uint64_t bytes_per_second = 1E6*PKT_DTSZ*N_ANTENNA/(double)PKT_DURATION;  //每秒传输的数据量
-  uint64_t file_size        = bytes_per_second*nsecond_save;                //计算实际每个file的大小
+  uint64_t file_size        = nblocksave*BLOCK_SIZE;                //计算实际每个file的大小
   fprintf(stdout, "UDP2DB_INFO: bytes_per_second is %" PRIu64 "\n", bytes_per_second);
   fprintf(stdout, "UDP2DB_INFO: file_size is %" PRIu64 "\n", file_size);
   
@@ -390,6 +393,7 @@ int main(int argc, char *argv[]){
   // start to receive data
   // discard the first packet
   int counter0 = counter;
+  fprintf(stdout,"counter0 is %d\n",counter0);
   int nblock_recorded = 0;
   uint64_t npacket_recorded = 0;
   
@@ -422,23 +426,23 @@ int main(int argc, char *argv[]){
 
     int diff_counter = counter - counter0;
     int loc_packet   = diff_counter*N_ANTENNA+ad;  //包位置信息，考虑到不同ad的包
-    
     // We only cope with packet loss within a single buffer block
     if(diff_counter >= npacket){
-      ipcbuf_mark_filled(data_block, bufsz); // Open a ring buffer block
-      
+      //fprintf(stdout,"counter0 is %d, counter is %d, diff_counter is %d\n",counter0,counter,diff_counter);
+      ipcbuf_mark_filled(data_block, bufsz);
+      databuf = ipcbuf_get_next_write(data_block);
       counter0   += npacket;
+      //counter0 = counter;
       loc_packet -= (npacket*N_ANTENNA);
       nblock_recorded++;
-      
+      //fprintf(stdout, "nblock_recorded is %d\n",nblock_recorded);
       if(nblock_recorded%nblock == 0){
 	      // now we can report traffic status
 	      int64_t npacket_lost = npacket_expected - npacket_recorded;
 	      double lost_rate     = npacket_lost/(double)npacket_expected;
-	
-	      fprintf(stdout, "UDP2DB_INFO: %d buffer block recorded\n", nblock_recorded);	
-        fprintf(stdout, "UDP2DB_INFO: time so far %15.6f seconds\n", nblock_recorded*block_duration);
-        fprintf(stdout, "UDP2DB_INFO: report interval is %.6f seconds\n", report_interval);
+	      fprintf(stdout, "UDP2DB_INFO:  %d buffer block recorded\n", nblock_recorded);	
+        fprintf(stdout, "UDP2DB_INFO:  time so far %15.6f seconds\n", nblock_recorded*block_duration);
+        fprintf(stdout, "UDP2DB_INFO:  report interval is %.6f seconds\n", nsecond_report);
         fprintf(stdout, "UDP2DB_INFO:  %" PRIu64 " packets expected\n", npacket_expected);
         fprintf(stdout, "UDP2DB_INFO:  %" PRIu64 " packets recorded\n", npacket_recorded);
         fprintf(stdout, "UDP2DB_INFO:  %" PRId64 " packets lost\n", npacket_lost);
@@ -462,12 +466,10 @@ int main(int argc, char *argv[]){
 	
 	      return EXIT_SUCCESS;
       }
-      
-      databuf = ipcbuf_get_next_write(data_block); // Open a ring buffer block
     }
     
-    if(diff_counter >= 0){
-      // here we discard late packets
+    // save the data from udp packets
+    if(diff_counter >= 0 && diff_counter<=npacket){
       uint64_t offset = loc_packet*PKT_DTSZ;
       memcpy(databuf+offset, dbuf+PKT_HDRSZ, PKT_DTSZ);
       npacket_recorded++;

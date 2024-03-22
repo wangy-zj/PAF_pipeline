@@ -57,12 +57,12 @@ int main(int argc, char *argv[]){
   key_t input_key = DADA_DEFAULT_BLOCK_KEY;
   key_t beamform_key = DADA_DEFAULT_BLOCK_KEY+20;
   int gpu = 0;
-  int reset_bf = 1;
+  int nblocksave = 40;
 
  // 读取解析各项输入参数 
   while (1) {
     unsigned ss;
-    unsigned opt=getopt_long_only(argc, argv, "i:o:n:g:h", 
+    unsigned opt=getopt_long_only(argc, argv, "i:o:g:h", 
 				  options, NULL);
     if (opt==EOF) break;
     
@@ -180,10 +180,16 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE);
   }
 
+  if (ascii_header_get(input_hbuf, "UTC_START", "%lf", &dada_header.utc_start) < 0)  {
+    fprintf(stderr, "WRITE_DADA_HEADER_ERROR: Error getting UTC_START, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   
   double bf_tsamp = TSAMP*N_AVERAGE;
 
-  
   fprintf(stdout, "HERE\n");
   fprintf(stdout, "DEBUG: gpu = %d\n", gpu);
   fprintf(stdout, "DEBUG: nelement = %d\n", N_ANTENNA);
@@ -241,6 +247,20 @@ int main(int argc, char *argv[]){
     exit(EXIT_FAILURE);
   }
 
+  if (ascii_header_set(beamform_hbuf, "FILE_SIZE", "%d", nblocksave*INTE_BLOCK_SIZE) < 0)  {
+    fprintf(stderr, "BEAMFORM_ERROR: Error setting FILE_SIZE, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
+  if (ascii_header_set(beamform_hbuf, "UTC_START", "%d", dada_header.utc_start) < 0)  {
+    fprintf(stderr, "BEAMFORM_ERROR: Error setting FILE_SIZE, "
+            "which happens at %s, line [%d].\n",
+            __FILE__, __LINE__);
+    exit(EXIT_FAILURE);
+  }
+
   if (ascii_header_set(beamform_hbuf, "BF_NCHAN", "%d", N_CHAN) < 0)  {
     fprintf(stderr, "BEAMFORM_ERROR: Error setting NCHAN, "
             "which happens at %s, line [%d].\n",
@@ -261,6 +281,8 @@ int main(int argc, char *argv[]){
             __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
+
+
 
   ipcbuf_mark_cleared(input_hblock);
   ipcbuf_mark_filled(beamform_output_hblock, DADA_DEFAULT_HEADER_SIZE);
@@ -326,7 +348,7 @@ int main(int argc, char *argv[]){
   CUDA_STARTTIME(pipeline);  
   while(!ipcbuf_eod(input_dblock)){
 
-    fprintf(stdout, "We are at %d block\n", nblock);
+    //fprintf(stdout, "We are at %d block\n", nblock);
     // block memory copy,
     char *input_cbuf = ipcbuf_get_next_read(input_dblock, NULL);
     if(!input_cbuf){
@@ -339,11 +361,14 @@ int main(int argc, char *argv[]){
     checkCudaErrors(cudaMemcpy(d_B, h_B, size_B*sizeof(cuComplex), cudaMemcpyHostToDevice));
     CUDA_STOPTIME(memcpyh2d); 
     ipcbuf_mark_cleared(input_dblock);
-    fprintf(stdout, "Memory copy from host to device of %d block done\n", nblock);
+    //fprintf(stdout, "Memory copy from host to device of %d block done\n", nblock);
 
     krnl_unpack<<<unpack_dimgrid, unpack_dimblock>>>(d_packed, d_A, N_TIMESTEP_PER_BLOCK*N_ANTENNA);
     getLastCudaError("Kernel execution failed [ krnl_unpack ]");
 
+    //beamform calibration
+
+    // beamform
     cublasCgemm3mStridedBatched(
                   multi_plan,
                   CUBLAS_OP_N,

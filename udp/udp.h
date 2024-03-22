@@ -39,12 +39,12 @@
 #define PKT_DURATION   (N_TIMESTEP_PER_PKT*TSAMP)  // microseconds of each packet
 
 // defines of network interfaces
-#define IP_SEND     "10.101.5.33"
-#define IP_RECV     "10.101.5.33"
+#define IP_SEND     "10.15.48.19"
+#define IP_RECV     "10.15.48.19"
 #define PORT_SEND   10000 
 #define PORT_RECV   60000
 #define AD0         96
-#define N_ANTENNA   224
+#define N_ANTENNA   10
 
 // defines of DADA
 #define N_PKT_PER_BLOCK  256

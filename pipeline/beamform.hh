@@ -36,7 +36,7 @@
 #endif
 
 // defines of beamform
-#define N_BEAM 180
+#define N_BEAM 1
 #define N_FREQ N_CHAN
 #define COEFFICIENT_SIZE (N_FREQ*N_ANTENNA*N_BEAM)
 

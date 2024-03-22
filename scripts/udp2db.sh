@@ -51,18 +51,17 @@ $echo "udp_command is:  $udp_command\n"
 
 # setup dada buffer
 pkt_dtsz=4096
-nstream_gpu=24
-npkt=2048
+nantenna=10
+npkt=256
 key=a000
-bufsz=$(( pkt_dtsz*nstream_gpu*npkt ))
+bufsz=$(( pkt_dtsz*nantenna*npkt ))
 $echo "pkt_dtsz is:    $pkt_dtsz"
-$echo "nstream_gpu is: $nstream_gpu"
+$echo "nantenna is:    $nantenna"
 $echo "npkt is:        $npkt"
 $echo "DADA key is:    $key"
-$echo "bufsz is:       $bufsz\n"
 
 # create PSRDADA ring buffer
-dada_db -k $key -b $bufsz -p -l -c $numa -w &
+dada_db -k $key -b $bufsz -n 16 -p -w -l &
 pids+=(`echo $! `)
 keys+=(`echo $key `)
 sleep 1s # just to make sure that all ring buffers are created
@@ -70,22 +69,22 @@ $echo "created all ring buffers\n"
 
 # setup data consumers
 #dada_dbnull -k $key -z &
-dada_dbdisk -k $key -D . -W &
+dir_raw=/home/hero/data/data_raw
+dada_dbdisk -b 1 -k $key -D $dir_raw -o -z -v -W &
 pids+=(`echo $! `)
 $echo "had the data consumer up\n"
 
 # setup tests
 hdr_fname=$hdr_root/paf_test.header
-nblock=10
+nsecond_report=2
 nsecond=10
-freq=1420
+nblocksave=40
 
 $echo "nblock is:    $nblock"
 $echo "nsecond is:   $nsecond"
-$echo "freq is:      $freq\n"
 
 # Start udp2db
-$udp_command -f $hdr_fname -n $nblock -N $nsecond -k $key
+$udp_command -f $hdr_fname -n $nsecond_report -N $nsecond -k $key -s $nblocksave
 sleep 1s
 $echo "done udp2db setup\n"
 cleanup

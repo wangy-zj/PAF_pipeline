@@ -158,7 +158,6 @@ int main(int argc, char *argv[]){
   /* Get packet and send it */
   char buf[PKTSZ] = {'0'};
   packet_header_t *packet_header = (packet_header_t *)buf;
-  //packet_header->flag = 1;
   
   // setup counter with real time stamp  
   time_t tmi;
@@ -168,7 +167,8 @@ int main(int argc, char *argv[]){
   int min  = utc->tm_min;
   int sec  = utc->tm_sec;
   double microsecond_offset = 1E6*(hour*3600+min*60+sec); // can only be as accurate as 1 second
-  packet_header->counter = (uint64_t)(microsecond_offset/(double)PKT_DURATION);
+  //packet_header->counter = (uint64_t)(microsecond_offset/(double)PKT_DURATION);
+  packet_header->counter = (uint64_t)(0);
   fprintf(stdout, "UDPGEN_INFO: microsecond_offset is %.6f microseconds\n", microsecond_offset);
   fprintf(stdout, "UDPGEN_INFO: First counter is %" PRIu64 "\n", packet_header->counter);
   
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]){
       
       fprintf(stdout, "UDPGEN_INFO: Required to report traffic every %.6f seconds\n", time_report);
       fprintf(stdout, "UDPGEN_INFO: Report traffic after %.6f seconds\n", elapsed_time);
-      fprintf(stdout, "UDPGEN_INFO: Data rate is %.6f Mbps\n\n", data_rate);
+      fprintf(stdout, "UDPGEN_INFO: Data rate is %.6f MB/s\n\n", data_rate);
       
       gettimeofday(&previous_time, NULL);      
     }
