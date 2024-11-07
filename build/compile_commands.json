@@ -25,32 +25,14 @@
 },
 {
   "directory": "/home/hero/code/PAF_pipeline/build",
-  "command": "/usr/bin/g++-6 -I/include -I/home/hero/.local/include -g -fopenmp -o udp/CMakeFiles/udpgen.dir/udpgen.cpp.o -c /home/hero/code/PAF_pipeline/udp/udpgen.cpp",
-  "file": "/home/hero/code/PAF_pipeline/udp/udpgen.cpp",
-  "output": "udp/CMakeFiles/udpgen.dir/udpgen.cpp.o"
-},
-{
-  "directory": "/home/hero/code/PAF_pipeline/build",
-  "command": "/usr/bin/g++-6 -I/include -I/home/hero/.local/include -g -fopenmp -o udp/CMakeFiles/udpgen.dir/udp.cpp.o -c /home/hero/code/PAF_pipeline/udp/udp.cpp",
-  "file": "/home/hero/code/PAF_pipeline/udp/udp.cpp",
-  "output": "udp/CMakeFiles/udpgen.dir/udp.cpp.o"
-},
-{
-  "directory": "/home/hero/code/PAF_pipeline/build",
-  "command": "/usr/bin/g++-6 -I/include -I/home/hero/.local/include -g -fopenmp -o udp/CMakeFiles/udp2db.dir/udp2db.cpp.o -c /home/hero/code/PAF_pipeline/udp/udp2db.cpp",
-  "file": "/home/hero/code/PAF_pipeline/udp/udp2db.cpp",
-  "output": "udp/CMakeFiles/udp2db.dir/udp2db.cpp.o"
-},
-{
-  "directory": "/home/hero/code/PAF_pipeline/build",
-  "command": "/usr/bin/g++-6 -I/include -I/home/hero/.local/include -g -fopenmp -o udp/CMakeFiles/udp2db.dir/udp.cpp.o -c /home/hero/code/PAF_pipeline/udp/udp.cpp",
-  "file": "/home/hero/code/PAF_pipeline/udp/udp.cpp",
-  "output": "udp/CMakeFiles/udp2db.dir/udp.cpp.o"
-},
-{
-  "directory": "/home/hero/code/PAF_pipeline/build",
   "command": "/usr/local/cuda-11.7/bin/nvcc -forward-unknown-to-host-compiler -I/home/hero/.local/include -g -std=c++14 --generate-code=arch=compute_61,code=[compute_61,sm_61] --generate-code=arch=compute_75,code=[compute_75,sm_75] --generate-code=arch=compute_86,code=[compute_86,sm_86] -x cu -c /home/hero/code/PAF_pipeline/pipeline/pipeline_dada_beamform.cu -o pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o",
   "file": "/home/hero/code/PAF_pipeline/pipeline/pipeline_dada_beamform.cu",
   "output": "pipeline/CMakeFiles/pipeline_dada_beamform.dir/pipeline_dada_beamform.cu.o"
+},
+{
+  "directory": "/home/hero/code/PAF_pipeline/build",
+  "command": "/usr/local/cuda-11.7/bin/nvcc -forward-unknown-to-host-compiler -I/home/hero/.local/include -g -std=c++14 --generate-code=arch=compute_61,code=[compute_61,sm_61] --generate-code=arch=compute_75,code=[compute_75,sm_75] --generate-code=arch=compute_86,code=[compute_86,sm_86] -x cu -c /home/hero/code/PAF_pipeline/pipeline/dada_speed_test.cu -o pipeline/CMakeFiles/dada_speed_test.dir/dada_speed_test.cu.o",
+  "file": "/home/hero/code/PAF_pipeline/pipeline/dada_speed_test.cu",
+  "output": "pipeline/CMakeFiles/dada_speed_test.dir/dada_speed_test.cu.o"
 }
 ]

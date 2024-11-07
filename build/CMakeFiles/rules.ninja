@@ -6,7 +6,7 @@
 # It is included in the main 'build.ninja'.
 
 # =============================================================================
-# Project: udp-pipeline
+# Project: paf-pipeline
 # Configurations: Debug
 # =============================================================================
 # =============================================================================
@@ -49,44 +49,6 @@ rule CUDA_STATIC_LIBRARY_LINKER__udppipe_Debug
 
 
 #############################################
-# Rule for compiling CXX files.
-
-rule CXX_COMPILER__udpgen_unscanned_Debug
-  depfile = $DEP_FILE
-  deps = gcc
-  command = /usr/bin/g++-6 $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building CXX object $out
-
-
-#############################################
-# Rule for linking CXX executable.
-
-rule CXX_EXECUTABLE_LINKER__udpgen_Debug
-  command = $PRE_LINK && /usr/bin/g++-6 $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
-  description = Linking CXX executable $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
-# Rule for compiling CXX files.
-
-rule CXX_COMPILER__udp2db_unscanned_Debug
-  depfile = $DEP_FILE
-  deps = gcc
-  command = /usr/bin/g++-6 $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -o $out -c $in
-  description = Building CXX object $out
-
-
-#############################################
-# Rule for linking CXX executable.
-
-rule CXX_EXECUTABLE_LINKER__udp2db_Debug
-  command = $PRE_LINK && /usr/bin/g++-6 $FLAGS $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES && $POST_BUILD
-  description = Linking CXX executable $TARGET_FILE
-  restat = $RESTAT
-
-
-#############################################
 # Rule for compiling CUDA files.
 
 rule CUDA_COMPILER__pipeline_dada_beamform_unscanned_Debug
@@ -100,6 +62,25 @@ rule CUDA_COMPILER__pipeline_dada_beamform_unscanned_Debug
 # Rule for linking CUDA executable.
 
 rule CUDA_EXECUTABLE_LINKER__pipeline_dada_beamform_Debug
+  command = $PRE_LINK && /usr/bin/g++ $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES -L"/usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs" -L"/usr/local/cuda-11.7/targets/x86_64-linux/lib" && $POST_BUILD
+  description = Linking CUDA executable $TARGET_FILE
+  restat = $RESTAT
+
+
+#############################################
+# Rule for compiling CUDA files.
+
+rule CUDA_COMPILER__dada_speed_test_unscanned_Debug
+  depfile = $DEP_FILE
+  deps = gcc
+  command = /usr/local/cuda-11.7/bin/nvcc -forward-unknown-to-host-compiler $DEFINES $INCLUDES $FLAGS -MD -MT $out -MF $DEP_FILE -x cu -c $in -o $out
+  description = Building CUDA object $out
+
+
+#############################################
+# Rule for linking CUDA executable.
+
+rule CUDA_EXECUTABLE_LINKER__dada_speed_test_Debug
   command = $PRE_LINK && /usr/bin/g++ $LINK_FLAGS $in -o $TARGET_FILE $LINK_PATH $LINK_LIBRARIES -L"/usr/local/cuda-11.7/targets/x86_64-linux/lib/stubs" -L"/usr/local/cuda-11.7/targets/x86_64-linux/lib" && $POST_BUILD
   description = Linking CUDA executable $TARGET_FILE
   restat = $RESTAT
