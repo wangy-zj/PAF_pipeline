@@ -3,6 +3,7 @@
 #endif
 
 #include "udp.h"
+#include "cstdlib"
 
 int seconds2dhms(uint64_t seconds, char dhms[STR_BUFLEN]){
 

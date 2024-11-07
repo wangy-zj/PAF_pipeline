@@ -3,21 +3,23 @@
   contains all functions and defines related to the udp2dp
 
 */
-
 #ifndef _UDP_H
 #define _UDP_H
 
 #include <math.h>
 #include <signal.h>
 
+
 #include "ipcio.h"
 #include "futils.h"
 #include "ipcbuf.h"
+
 #include "dada_def.h"
 #include "ascii_header.h"
 #include "dada_hdu.h"
+
 #include "multilog.h"
-#include "dada_def.h"
+
 
 #define MJD1970     40587.0f ///< MJD days in 1970.01.01
 #define SECDAY      86400.0f ///< Seconds in a days
@@ -29,9 +31,9 @@
 #define PKT_HDRSZ   8
 #define PKTSZ       (PKT_HDRSZ+PKT_DTSZ)
 
-#define N_CHAN      256
-#define FREQ        1400.0f //MHz
-#define CHAN_WIDTH  0.5f // MHz
+#define N_CHAN      32 // number of channels
+#define FREQ        300.0f //MHz
+#define CHAN_WIDTH  0.5f // MHz，单通道带宽
 #define SAMPSZ      2 // 2 bytes, 1 real and 1 imag
 
 #define N_TIMESTEP_PER_PKT      (PKT_DTSZ/(N_CHAN*SAMPSZ)) // number of time steps per packet
@@ -39,12 +41,12 @@
 #define PKT_DURATION   (N_TIMESTEP_PER_PKT*TSAMP)  // microseconds of each packet
 
 // defines of network interfaces
-#define IP_SEND     "10.15.48.19"
-#define IP_RECV     "10.15.48.19"
+#define IP_SEND     "10.15.48.17"
+#define IP_RECV     "10.15.48.17"
 #define PORT_SEND   10000 
 #define PORT_RECV   60000
-#define AD0         96
-#define N_ANTENNA   10
+#define AD0         20
+#define N_ANTENNA   16
 
 // defines of DADA
 #define N_PKT_PER_BLOCK  256

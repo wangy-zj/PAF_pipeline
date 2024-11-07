@@ -11,9 +11,9 @@ find_package(OpenMP)
 set(CUDA_LIBRARIES cufft curand cudart cublas)
 find_library(PSRDADA_LIBRARY psrdada $ENV{PSRDADA_ROOT}/lib)
 
-#add_subdirectory(src)
-add_subdirectory(udp)
+add_subdirectory(src)
+#add_subdirectory(udp)
 #add_subdirectory(test)
-#add_subdirectory(pipeline)
+add_subdirectory(pipeline)
 #add_subdirectory(dada)
 

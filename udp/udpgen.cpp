@@ -12,6 +12,7 @@
 #include <arpa/inet.h>
 
 #include "udp.h"
+#include <unistd.h>
 
 // The following copied from https://stackoverflow.com/questions/41390824/%C2%B5s-precision-wait-in-c-for-linux-that-does-not-put-program-to-sleep
 # define tscmp(a, b, CMP)			\
@@ -158,6 +159,7 @@ int main(int argc, char *argv[]){
   /* Get packet and send it */
   char buf[PKTSZ] = {'0'};
   packet_header_t *packet_header = (packet_header_t *)buf;
+  //packet_header->flag = 1;
   
   // setup counter with real time stamp  
   time_t tmi;
