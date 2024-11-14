@@ -145,8 +145,7 @@ int main(int argc, char *argv[]){
 	    __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  fprintf(stdout, "PROCESS_INFO:\tWe have input HDU locked\n");
-  fprintf(stdout, "PROCESS_INFO:\tWe have input HDU setup\n");
+  fprintf(stdout, "PROCESS_INFO:\tWe have input HDU conneted and locked\n");
 
   // Setup beamform output ring buffer
   dada_hdu_t *beamform_hdu = dada_hdu_create(NULL);
@@ -166,8 +165,7 @@ int main(int argc, char *argv[]){
 	    __FILE__, __LINE__);
     exit(EXIT_FAILURE);
   }
-  fprintf(stdout, "PROCESS_INFO:\tWe have input HDU locked\n");
-  fprintf(stdout, "PROCESS_INFO:\tWe have input HDU setup\n");
+  fprintf(stdout, "PROCESS_INFO:\tWe have beamform HDU conneted and locked\n");
 
   // Now first read configuration from input ring buffer header & beamform.hh
   dada_header_t dada_header = {0};
