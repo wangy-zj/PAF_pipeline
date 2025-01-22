@@ -19,7 +19,7 @@
 #define TILE_DIM        32
 
 /* unpack the DADA block from 8+8bit into cuComplex*/
-__global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp);
+__global__ void krnl_unpack(char *input, cuComplex *output, int nsamp);
 
 /* calculate the beamform power and integrate by n_average for each channel and beam*/
 __global__ void krnl_power_beamform(cuComplex *input, float *output, int nsamp_acc, int naverage);

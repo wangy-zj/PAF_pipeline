@@ -158,7 +158,11 @@ int main(int argc, char *argv[]){
     }
   
     unsigned bytes_block_input  = ipcbuf_get_bufsz(gpu_dblock);
-    checkCudaErrors(cudaMemcpy(output_ibuf, gpu_cbuf, bytes_block_input,cudaMemcpyDeviceToHost));
+    cudaStream_t stream;
+    cudaStreamCreate(&stream);
+    checkCudaErrors(cudaMemcpyAsync(output_ibuf, gpu_cbuf, bytes_block_input,cudaMemcpyDeviceToHost,stream));
+    cudaStreamSynchronize(stream);
+    cudaStreamDestroy(stream);
     ipcbuf_mark_cleared(gpu_dblock);
     ipcbuf_mark_filled(output_dblock,bytes_block_input);
 

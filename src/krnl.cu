@@ -6,7 +6,7 @@
 #include "../pipeline/beamform.hh"
 
 
-__global__ void krnl_unpack(int8_t *input, cuComplex *output, int nsamp){
+__global__ void krnl_unpack(char *input, cuComplex *output, int nsamp){
   const int n_antenna = gridDim.x;
   const int n_timestep = gridDim.y;
   const int n_chan = blockDim.x;
