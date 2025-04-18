@@ -32,10 +32,8 @@ function cleanup {
        for key in "${keys[@]}"
        do
     	   $echo "removing ring buffer $key"
-    	   
            dada_db -k $key -d
        done
-       ipcrm -a
        $echo "removed all ring buffers"
     else
 	$echo "we do not have any existing ring buffers"
@@ -54,9 +52,9 @@ save_raw_dir=/home/hero/data/data_raw
 save_bmf_dir=/home/hero/data/data_bmf
 
 dada_dtsz=$((128*1024*1024))
-key_input=a000
-key_gpu=b000
-key_output=c000
+key_input=a002
+key_gpu=b002
+key_output=c002
 block_num=32
 
 
@@ -66,7 +64,7 @@ pids+=(`echo $! `)
 keys+=(`echo $key_input `)
 sleep 1s 
 # GPU ringbuffer
-dada_db -k $key_gpu -n $block_num -b $dada_dtsz -g 1 -w&
+dada_db -k $key_gpu -n $block_num -b $dada_dtsz -g 2 -w&
 pids+=(`echo $! `)
 keys+=(`echo $key_gpu `)
 sleep 1s 
@@ -83,9 +81,7 @@ $echo "created all ring buffers for the first GPU\n"
 # 清除ringbuffer
 #dada_dbnull -k $key_input&
 $dada_clear -i $key_output&
-
 #dada_dbdisk -k $key_output -D $save_bmf_dir -z -o&
-
 pids+=(`echo $! `)
 sleep 1s
 #$echo "save output ring buffer\n"

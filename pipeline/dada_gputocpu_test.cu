@@ -156,7 +156,14 @@ int main(int argc, char *argv[]){
       fprintf(stderr, "Could not get next gpu write data block\n");
       exit(EXIT_FAILURE);
     }
-  
+    
+    //add beamform here
+
+    //add Zoom FFT here
+
+    //add intergration here
+
+    //copy data to CPU
     unsigned bytes_block_input  = ipcbuf_get_bufsz(gpu_dblock);
     checkCudaErrors(cudaMemcpy(output_ibuf, gpu_cbuf, bytes_block_input,cudaMemcpyDeviceToHost));
     ipcbuf_mark_cleared(gpu_dblock);

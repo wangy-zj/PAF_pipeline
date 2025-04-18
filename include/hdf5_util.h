@@ -3,7 +3,8 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include "hdf5.h"
+#include <hdf5.h>
+//#include "/usr/include/hdf5/serial/hdf5.h"
 
 #define H5FAIL -1
 

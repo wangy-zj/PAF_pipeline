@@ -8,8 +8,13 @@ endif()
 
 find_package(OpenMP)
 
+
 set(CUDA_LIBRARIES cufft curand cudart cublas)
 find_library(PSRDADA_LIBRARY psrdada $ENV{PSRDADA_ROOT}/lib)
+
+include_directories(
+  /usr/include/hdf5/serial/
+)
 
 add_subdirectory(src)
 #add_subdirectory(udp)

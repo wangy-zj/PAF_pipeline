@@ -32,9 +32,10 @@ function cleanup {
        for key in "${keys[@]}"
        do
     	   $echo "removing ring buffer $key"
-    	   ipcrm -a
-           #dada_db -k $key -d
+    	   #ipcrm -a
+           dada_db -k $key -d
        done
+       ipcrm -a
        $echo "removed all ring buffers"
     else
 	$echo "we do not have any existing ring buffers"
@@ -42,12 +43,13 @@ function cleanup {
 }
 
 
-WORK_ROOT=/home/hero/code
+WORK_ROOT=/home/wangyu
 project_root=$WORK_ROOT/PAF_pipeline
 hdr_root=$project_root/header/512MHz_beamform_4096B.header
 dada_command=$project_root/build/pipeline/dada_cputogpu_test
+dada_clear=$project_root/build/pipeline/dada_clear
 
-dada_dtsz=$((500*1024*1024))
+dada_dtsz=$((128*1024*1024))
 key_cpu=a000
 key_gpu=b000
 block_num=8
@@ -58,7 +60,7 @@ pids+=(`echo $! `)
 keys+=(`echo $key_cpu `)
 sleep 1s 
 # GPU ringbuffer
-dada_db -k $key_gpu -n $block_num -b $dada_dtsz -g 0 -p -w&
+dada_db -k $key_gpu -n $block_num -b $dada_dtsz -g 2 -p -w&
 pids+=(`echo $! `)
 keys+=(`echo $key_gpu `)
 sleep 1s 
@@ -66,10 +68,10 @@ $echo "created all ring buffers\n"
 
 
 # 清除ringbuffer
-dada_dbnull -k $key_gpu&
+$dada_clear -i $key_gpu&
 pids+=(`echo $! `)
 sleep 1s
-$echo "nulling out GPU ring buffer\n"
+$echo "clear the GPU ring buffer\n"
 
 # 开启传输
 $dada_command -i $key_cpu -g $key_gpu&
@@ -77,7 +79,7 @@ pids+=(`echo $! `)
 sleep 1s 
 $echo "started transfer\n"
 
-dada_junkdb -g -R 5000 -z -k $key_cpu -t 5 $hdr_root
+dada_junkdb -g -r 15000 -z -k $key_cpu -t 20 $hdr_root
 pids+=(`echo $! `)
 sleep 1s 
 $echo "junked CPU ring buffer\n"
