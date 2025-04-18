@@ -7,3 +7,8 @@ header/
 build/CMakeFiles/*.ninja
 *.json
 *.ninja
+build/build.ninja
+build/compile_commands.json
+build/compile_commands.json
+build/.cmake/api/v1/reply/target-pipeline_dada_beamform-Debug-d5ff139ef19fd82b7d28.json
+build/CMakeFiles/rules.ninja
